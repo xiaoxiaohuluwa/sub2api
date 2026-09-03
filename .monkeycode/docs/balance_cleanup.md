@@ -20,11 +20,16 @@
 - API endpoint 中 balance 相关接口定义
 - Store 中 balance 相关状态
 
-### Batch 3 - 后端余额路由/处理器删除
-- Admin User balance 更新路由及 handler
-- User balance 查询路由
-- CN Provider balance 查询路由
-- Balance notify handler
+### Batch 3 - 后端余额路由/处理器/服务删除（已推送 319a5a3a9）
+- `user_handler.go` 移除 `UpdateBalanceRequest` struct、`UpdateBalance`、`GetBalanceHistory` 方法
+- `admin.go` 路由移除 `POST /:id/balance` 和 `GET /:id/balance-history`
+- `admin_service.go` 接口移除 `UpdateUserBalance`、`GetUserBalanceHistory`
+- `admin_user.go` 移除上述方法及其全部内部辅助函数（`tryAccrueAffiliateRebateForAdminRecharge`、`getAllUserBalanceHistory`、`listRedeemBalanceHistoryForMerge`、`listAffiliateBalanceHistoryForMerge`、`listAffiliateBalanceHistory`、`countAffiliateBalanceHistory`、`mergeBalanceHistoryCodes`、`redeemCodeHistoryTime`）
+- `dto/types.go` User DTO 移除 `Balance`、`FrozenBalance`、`BalanceNotifyEnabled/Threshold/ThresholdType/ExtraEmails`、`TotalRecharged` 字段
+- `dto/mappers.go` 移除对应映射行
+- `gateway_handler.go` 用户信息响应移除 `remaining`、`balance` 字段
+- `admin_service_stub_test.go` 移除 `GetUserBalanceHistory` 桩方法
+- `admin_basic_handlers_test.go` 移除 balance 路由测试
 
 ### Batch 4 - 后端余额服务删除
 - BalanceNotifyService

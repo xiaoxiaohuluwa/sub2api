@@ -90,13 +90,6 @@ type UpdateUserRequest struct {
 	GroupRates map[int64]*float64 `json:"group_rates"`
 }
 
-// UpdateBalanceRequest represents balance update request
-type UpdateBalanceRequest struct {
-	Balance   float64 `json:"balance" binding:"required,gt=0"`
-	Operation string  `json:"operation" binding:"required,oneof=set add subtract"`
-	Notes     string  `json:"notes"`
-}
-
 type BindUserAuthIdentityRequest struct {
 	ProviderType    string                              `json:"provider_type"`
 	ProviderKey     string                              `json:"provider_key"`
@@ -385,37 +378,6 @@ func (h *UserHandler) Delete(c *gin.Context) {
 	response.Success(c, gin.H{"message": "User deleted successfully"})
 }
 
-// UpdateBalance handles updating user balance
-// POST /api/v1/admin/users/:id/balance
-func (h *UserHandler) UpdateBalance(c *gin.Context) {
-	userID, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		response.BadRequest(c, "Invalid user ID")
-		return
-	}
-
-	var req UpdateBalanceRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "Invalid request: "+err.Error())
-		return
-	}
-
-	idempotencyPayload := struct {
-		UserID int64                `json:"user_id"`
-		Body   UpdateBalanceRequest `json:"body"`
-	}{
-		UserID: userID,
-		Body:   req,
-	}
-	executeAdminIdempotentJSON(c, "admin.users.balance.update", idempotencyPayload, service.DefaultWriteIdempotencyTTL(), func(ctx context.Context) (any, error) {
-		user, execErr := h.adminService.UpdateUserBalance(ctx, userID, req.Balance, req.Operation, req.Notes)
-		if execErr != nil {
-			return nil, execErr
-		}
-		return dto.UserFromServiceAdmin(user), nil
-	})
-}
-
 // GetUserAPIKeys handles getting user's API keys
 // GET /api/v1/admin/users/:id/api-keys
 func (h *UserHandler) GetUserAPIKeys(c *gin.Context) {
@@ -460,47 +422,6 @@ func (h *UserHandler) GetUserUsage(c *gin.Context) {
 	}
 
 	response.Success(c, stats)
-}
-
-// GetBalanceHistory handles getting user's balance/concurrency change history
-// GET /api/v1/admin/users/:id/balance-history
-// Query params:
-//   - type: filter by record type (balance, affiliate_balance, admin_balance, concurrency, admin_concurrency, subscription)
-func (h *UserHandler) GetBalanceHistory(c *gin.Context) {
-	userID, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		response.BadRequest(c, "Invalid user ID")
-		return
-	}
-
-	page, pageSize := response.ParsePagination(c)
-	codeType := c.Query("type")
-
-	codes, total, totalRecharged, err := h.adminService.GetUserBalanceHistory(c.Request.Context(), userID, page, pageSize, codeType)
-	if err != nil {
-		response.ErrorFrom(c, err)
-		return
-	}
-
-	// Convert to admin DTO (includes notes field for admin visibility)
-	out := make([]dto.AdminRedeemCode, 0, len(codes))
-	for i := range codes {
-		out = append(out, *dto.RedeemCodeFromServiceAdmin(&codes[i]))
-	}
-
-	// Custom response with total_recharged alongside pagination
-	pages := int((total + int64(pageSize) - 1) / int64(pageSize))
-	if pages < 1 {
-		pages = 1
-	}
-	response.Success(c, gin.H{
-		"items":           out,
-		"total":           total,
-		"page":            page,
-		"page_size":       pageSize,
-		"pages":           pages,
-		"total_recharged": totalRecharged,
-	})
 }
 
 // ReplaceGroupRequest represents the request to replace a user's exclusive group

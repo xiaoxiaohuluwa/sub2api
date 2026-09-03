@@ -1783,12 +1783,9 @@ func (h *GatewayHandler) usageUnrestricted(c *gin.Context, ctx context.Context, 
 	}
 
 	resp := gin.H{
-		"mode":      "unrestricted",
-		"isValid":   true,
-		"planName":  "钱包余额",
-		"remaining": latestUser.Balance,
-		"unit":      "USD",
-		"balance":   latestUser.Balance,
+		"mode":     "unrestricted",
+		"isValid":  true,
+		"planName": "钱包余额",
 	}
 	if usageData != nil {
 		resp["usage"] = usageData
