@@ -105,7 +105,6 @@ export type AuthSourceType =
   | "dingtalk";
 
 export interface AuthSourceDefaultsValue {
-  balance: number;
   concurrency: number;
   subscriptions: DefaultSubscriptionSetting[];
   grant_on_signup: boolean;
@@ -148,7 +147,6 @@ const AUTH_SOURCE_TYPES: AuthSourceType[] = [
   "google",
   "dingtalk",
 ];
-const AUTH_SOURCE_DEFAULT_BALANCE = 0;
 const AUTH_SOURCE_DEFAULT_CONCURRENCY = 5;
 const PAYMENT_VISIBLE_METHOD_SOURCE_OPTIONS: Record<
   PaymentVisibleMethod,
@@ -254,10 +252,6 @@ export function buildAuthSourceDefaultsState(
   return AUTH_SOURCE_TYPES.reduce((acc, source) => {
     const subscriptions = raw[`auth_source_default_${source}_subscriptions`];
     acc[source] = {
-      balance: Number(
-        raw[`auth_source_default_${source}_balance`] ??
-          AUTH_SOURCE_DEFAULT_BALANCE,
-      ),
       concurrency: Math.max(
         1,
         Number(
@@ -288,8 +282,6 @@ export function appendAuthSourceDefaultsToUpdateRequest(
 
   for (const source of AUTH_SOURCE_TYPES) {
     const current = authSourceDefaults[source];
-    target[`auth_source_default_${source}_balance`] =
-      Number(current.balance) || 0;
     target[`auth_source_default_${source}_concurrency`] = Math.max(
       1,
       Math.floor(
@@ -416,7 +408,6 @@ export interface SystemSettings {
   login_agreement_updated_at: string;
   login_agreement_documents: LoginAgreementDocument[];
   // Default settings
-  default_balance: number;
   affiliate_rebate_rate: number;
   affiliate_rebate_freeze_hours: number;
   affiliate_rebate_duration_days: number;
@@ -425,37 +416,30 @@ export interface SystemSettings {
   default_concurrency: number;
   default_user_rpm_limit: number;
   default_subscriptions: DefaultSubscriptionSetting[];
-  auth_source_default_email_balance?: number;
   auth_source_default_email_concurrency?: number;
   auth_source_default_email_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_email_grant_on_signup?: boolean;
   auth_source_default_email_grant_on_first_bind?: boolean;
-  auth_source_default_linuxdo_balance?: number;
   auth_source_default_linuxdo_concurrency?: number;
   auth_source_default_linuxdo_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_linuxdo_grant_on_signup?: boolean;
   auth_source_default_linuxdo_grant_on_first_bind?: boolean;
-  auth_source_default_oidc_balance?: number;
   auth_source_default_oidc_concurrency?: number;
   auth_source_default_oidc_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_oidc_grant_on_signup?: boolean;
   auth_source_default_oidc_grant_on_first_bind?: boolean;
-  auth_source_default_wechat_balance?: number;
   auth_source_default_wechat_concurrency?: number;
   auth_source_default_wechat_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_wechat_grant_on_signup?: boolean;
   auth_source_default_wechat_grant_on_first_bind?: boolean;
-  auth_source_default_dingtalk_balance?: number;
   auth_source_default_dingtalk_concurrency?: number;
   auth_source_default_dingtalk_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_dingtalk_grant_on_signup?: boolean;
   auth_source_default_dingtalk_grant_on_first_bind?: boolean;
-  auth_source_default_github_balance?: number;
   auth_source_default_github_concurrency?: number;
   auth_source_default_github_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_github_grant_on_signup?: boolean;
   auth_source_default_github_grant_on_first_bind?: boolean;
-  auth_source_default_google_balance?: number;
   auth_source_default_google_concurrency?: number;
   auth_source_default_google_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_google_grant_on_signup?: boolean;
@@ -705,10 +689,7 @@ export interface SystemSettings {
   openai_advanced_scheduler_effective_weight_previous_response?: string;
   openai_advanced_scheduler_effective_weight_session_sticky?: string;
 
-  // 余额、订阅到期与账号限额通知
-  balance_low_notify_enabled: boolean;
-  balance_low_notify_threshold: number;
-  balance_low_notify_recharge_url: string;
+  // 订阅到期与账号限额通知
   subscription_expiry_notify_enabled: boolean;
   account_quota_notify_enabled: boolean;
   account_quota_notify_emails: NotifyEmailEntry[];
@@ -756,7 +737,6 @@ export interface UpdateSettingsRequest {
   login_agreement_mode?: "modal" | "checkbox" | string;
   login_agreement_updated_at?: string;
   login_agreement_documents?: LoginAgreementDocument[];
-  default_balance?: number;
   affiliate_rebate_rate?: number;
   affiliate_rebate_freeze_hours?: number;
   affiliate_rebate_duration_days?: number;
@@ -765,37 +745,30 @@ export interface UpdateSettingsRequest {
   default_concurrency?: number;
   default_user_rpm_limit?: number;
   default_subscriptions?: DefaultSubscriptionSetting[];
-  auth_source_default_email_balance?: number;
   auth_source_default_email_concurrency?: number;
   auth_source_default_email_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_email_grant_on_signup?: boolean;
   auth_source_default_email_grant_on_first_bind?: boolean;
-  auth_source_default_linuxdo_balance?: number;
   auth_source_default_linuxdo_concurrency?: number;
   auth_source_default_linuxdo_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_linuxdo_grant_on_signup?: boolean;
   auth_source_default_linuxdo_grant_on_first_bind?: boolean;
-  auth_source_default_oidc_balance?: number;
   auth_source_default_oidc_concurrency?: number;
   auth_source_default_oidc_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_oidc_grant_on_signup?: boolean;
   auth_source_default_oidc_grant_on_first_bind?: boolean;
-  auth_source_default_wechat_balance?: number;
   auth_source_default_wechat_concurrency?: number;
   auth_source_default_wechat_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_wechat_grant_on_signup?: boolean;
   auth_source_default_wechat_grant_on_first_bind?: boolean;
-  auth_source_default_dingtalk_balance?: number;
   auth_source_default_dingtalk_concurrency?: number;
   auth_source_default_dingtalk_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_dingtalk_grant_on_signup?: boolean;
   auth_source_default_dingtalk_grant_on_first_bind?: boolean;
-  auth_source_default_github_balance?: number;
   auth_source_default_github_concurrency?: number;
   auth_source_default_github_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_github_grant_on_signup?: boolean;
   auth_source_default_github_grant_on_first_bind?: boolean;
-  auth_source_default_google_balance?: number;
   auth_source_default_google_concurrency?: number;
   auth_source_default_google_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_google_grant_on_signup?: boolean;
@@ -1005,10 +978,7 @@ export interface UpdateSettingsRequest {
   openai_advanced_scheduler_weight_upstream_cost?: string;
   openai_advanced_scheduler_weight_previous_response?: string;
   openai_advanced_scheduler_weight_session_sticky?: string;
-  // 余额、订阅到期与账号限额通知
-  balance_low_notify_enabled?: boolean;
-  balance_low_notify_threshold?: number;
-  balance_low_notify_recharge_url?: string;
+  // 订阅到期与账号限额通知
   subscription_expiry_notify_enabled?: boolean;
   account_quota_notify_enabled?: boolean;
   account_quota_notify_emails?: NotifyEmailEntry[];
