@@ -201,11 +201,6 @@ import {
   isRegistrationEmailSuffixAllowed,
   normalizeRegistrationEmailSuffixWhitelist
 } from '@/utils/registrationEmailPolicy'
-import {
-  clearAllAffiliateReferralCodes,
-  loadAffiliateReferralCode,
-  oauthAffiliatePayload
-} from '@/utils/oauthAffiliate'
 
 const { t, locale } = useI18n()
 
@@ -247,9 +242,7 @@ const email = ref<string>('')
 const password = ref<string>('')
 const initialTurnstileToken = ref<string>('')
 const initialTencentCaptchaRandstr = ref<string>('')
-const promoCode = ref<string>('')
 const invitationCode = ref<string>('')
-const affCode = ref<string>('')
 const pendingAuthToken = ref<string>('')
 const pendingAuthTokenField = ref<PendingAuthTokenField>('pending_auth_token')
 const pendingProvider = ref<string>('')
@@ -336,9 +329,7 @@ onMounted(async () => {
       initialTurnstileToken.value =
         registerData.tencent_captcha_ticket || registerData.turnstile_token || ''
       initialTencentCaptchaRandstr.value = registerData.tencent_captcha_randstr || ''
-      promoCode.value = registerData.promo_code || ''
       invitationCode.value = registerData.invitation_code || ''
-      affCode.value = registerData.aff_code || loadAffiliateReferralCode()
       pendingAuthToken.value = registerData.pending_auth_token || activePendingSession?.token || ''
       pendingAuthTokenField.value = registerData.pending_auth_token_field || activePendingSession?.token_field || 'pending_auth_token'
       pendingProvider.value = registerData.pending_provider || activePendingSession?.provider || ''
@@ -688,7 +679,6 @@ async function handleVerify(): Promise<void> {
               tencent_captcha_randstr: createAccountTencentCaptchaRandstr.value
           }
           : {}),
-        ...oauthAffiliatePayload(affCode.value || loadAffiliateReferralCode()),
       }
       if (invitationCode.value) {
         payload.invitation_code = invitationCode.value
@@ -729,15 +719,12 @@ async function handleVerify(): Promise<void> {
             : undefined,
         tencent_captcha_ticket: tencentCaptchaEnabled.value ? initialTurnstileToken.value || undefined : undefined,
         tencent_captcha_randstr: tencentCaptchaEnabled.value ? initialTencentCaptchaRandstr.value || undefined : undefined,
-        promo_code: promoCode.value || undefined,
         invitation_code: invitationCode.value || undefined,
-        ...(affCode.value ? { aff_code: affCode.value } : {})
       })
     }
 
     // Clear session data
     sessionStorage.removeItem('register_data')
-    clearAllAffiliateReferralCodes()
 
     // Show success toast
     appStore.showSuccess(t('auth.accountCreatedSuccess', { siteName: siteName.value }))
@@ -762,8 +749,8 @@ function handleBack(): void {
   // Clear session data
   sessionStorage.removeItem('register_data')
 
-  // Go back to registration
-  router.push('/register')
+  // Return to login when account creation is cancelled
+  router.push('/login')
 }
 
 function buildEmailSuffixNotAllowedMessage(): string {

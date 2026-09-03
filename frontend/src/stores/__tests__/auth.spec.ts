@@ -70,7 +70,7 @@ describe('useAuthStore', () => {
       mockLogin.mockResolvedValue(fakeAuthResponse)
       const store = useAuthStore()
 
-      await store.login({ email: 'test@example.com', password: '123456' })
+      await store.login({ username: 'test', password: '123456' })
 
       expect(store.token).toBe('test-token-123')
       expect(store.user).toEqual(fakeUser)
@@ -83,7 +83,7 @@ describe('useAuthStore', () => {
       mockLogin.mockRejectedValue(new Error('Invalid credentials'))
       const store = useAuthStore()
 
-      await expect(store.login({ email: 'test@example.com', password: 'wrong' })).rejects.toThrow(
+      await expect(store.login({ username: 'test', password: 'wrong' })).rejects.toThrow(
         'Invalid credentials'
       )
 
@@ -97,7 +97,7 @@ describe('useAuthStore', () => {
       mockLogin.mockResolvedValue(twoFAResponse)
       const store = useAuthStore()
 
-      const result = await store.login({ email: 'test@example.com', password: '123456' })
+      const result = await store.login({ username: 'test', password: '123456' })
 
       expect(result).toEqual(twoFAResponse)
       expect(store.token).toBeNull()
@@ -142,7 +142,7 @@ describe('useAuthStore', () => {
       const store = useAuthStore()
 
       // 先登录
-      await store.login({ email: 'test@example.com', password: '123456' })
+      await store.login({ username: 'test', password: '123456' })
       expect(store.isAuthenticated).toBe(true)
 
       // 注销
@@ -322,7 +322,7 @@ describe('useAuthStore', () => {
       mockLogin.mockResolvedValue(adminResponse)
       const store = useAuthStore()
 
-      await store.login({ email: 'admin@example.com', password: '123456' })
+      await store.login({ username: 'admin', password: '123456' })
 
       expect(store.isAdmin).toBe(true)
     })
@@ -331,7 +331,7 @@ describe('useAuthStore', () => {
       mockLogin.mockResolvedValue(fakeAuthResponse)
       const store = useAuthStore()
 
-      await store.login({ email: 'test@example.com', password: '123456' })
+      await store.login({ username: 'test', password: '123456' })
 
       expect(store.isAdmin).toBe(false)
     })
@@ -348,7 +348,7 @@ describe('useAuthStore', () => {
     it('刷新用户数据并更新 localStorage', async () => {
       mockLogin.mockResolvedValue(fakeAuthResponse)
       const store = useAuthStore()
-      await store.login({ email: 'test@example.com', password: '123456' })
+      await store.login({ username: 'test', password: '123456' })
 
       const updatedUser = { ...fakeUser, username: 'updated-name' }
       mockGetCurrentUser.mockResolvedValue({ data: updatedUser })
@@ -377,7 +377,7 @@ describe('useAuthStore', () => {
       mockLogin.mockResolvedValue(simpleResponse)
       const store = useAuthStore()
 
-      await store.login({ email: 'test@example.com', password: '123456' })
+      await store.login({ username: 'test', password: '123456' })
 
       expect(store.isSimpleMode).toBe(true)
     })

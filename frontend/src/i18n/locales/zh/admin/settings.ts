@@ -143,8 +143,6 @@ export default {
         emailDomainQuota: '非白名单域名限量注册',
         emailDomainQuotaHint:
           '开启后，白名单非空时，其他可注册主域名各限注册一个账户；关闭时非白名单域名直接拒绝注册。白名单为空时本开关无效果',
-        promoCode: '优惠码',
-        promoCodeHint: '允许用户在注册时使用优惠码',
         invitationCode: '邀请码注册',
         invitationCodeHint: '开启后，用户注册时需要填写有效的邀请码',
         passwordReset: '忘记密码',
@@ -863,9 +861,6 @@ export default {
         threshold: '默认提醒阈值',
         thresholdHint: '用户未自定义时使用此值',
         thresholdPlaceholder: '输入金额',
-        rechargeUrl: '充值页面 URL',
-        rechargeUrlPlaceholder: 'https://example.com/payment',
-        rechargeUrlHint: '设置后邮件中将包含充值链接按钮',
       },
       quotaNotify: {
         title: '账号限额通知',
@@ -875,12 +870,6 @@ export default {
         emailsHint: '留空则不发送通知',
         addEmail: '添加邮箱',
         emailPlaceholder: '输入邮箱地址',
-      },
-      subscriptionExpiryNotify: {
-        title: '订阅到期提醒',
-        description: '控制是否向用户发送订阅即将到期的邮件提醒。',
-        enabled: '启用订阅到期提醒',
-        enabledHint: '开启后，系统会在订阅到期前 7 天、3 天、1 天各发送一次提醒。'
       },
       smtp: {
         title: 'SMTP 设置',

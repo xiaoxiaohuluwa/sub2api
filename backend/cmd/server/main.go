@@ -139,6 +139,11 @@ func runMainServer() {
 	if err := logger.Init(logger.OptionsFromConfig(cfg.Log)); err != nil {
 		log.Fatalf("Failed to initialize logger: %v", err)
 	}
+	// 已安装实例启动时兜底重建管理员账号（迁移清空 users 表后，若 config 存在
+	// 不会重新走 setup 流程，必须在此保证存在一个可登录的管理员）。
+	if err := setup.EnsureAdminUser(); err != nil {
+		log.Fatalf("Failed to ensure admin user: %v", err)
+	}
 	if cfg.RunMode == config.RunModeSimple {
 		log.Println("⚠️  WARNING: Running in SIMPLE mode - billing and quota checks are DISABLED")
 	}

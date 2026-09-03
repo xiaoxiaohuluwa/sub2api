@@ -132,7 +132,7 @@ describe('Tencent captcha action gate', () => {
   it('clicking login opens Tencent captcha before calling login', async () => {
     const wrapper = mountLogin()
     await flushPromises()
-    await wrapper.get('#email').setValue('user@example.com')
+    await wrapper.get('#username').setValue('user')
     await wrapper.get('#password').setValue('secret-123')
 
     await wrapper.get('form').trigger('submit')
@@ -149,7 +149,7 @@ describe('Tencent captcha action gate', () => {
     verifyActionMock.mockResolvedValue(null)
     const wrapper = mountLogin()
     await flushPromises()
-    await wrapper.get('#email').setValue('user@example.com')
+    await wrapper.get('#username').setValue('user')
     await wrapper.get('#password').setValue('secret-123')
 
     await wrapper.get('form').trigger('submit')

@@ -23,7 +23,6 @@ type AuthHandler struct {
 	authService          *service.AuthService
 	userService          *service.UserService
 	settingSvc           *service.SettingService
-	promoService         *service.PromoService
 	redeemService        *service.RedeemService
 	totpService          *service.TotpService
 	userAttributeService *service.UserAttributeService
@@ -39,47 +38,25 @@ func NewAuthHandler(cfg *config.Config, authService *service.AuthService, userSe
 		authService:          authService,
 		userService:          userService,
 		settingSvc:           settingService,
-		promoService:         promoService,
 		redeemService:        redeemService,
 		totpService:          totpService,
 		userAttributeService: userAttributeService,
 	}
 }
 
-// RegisterRequest represents the registration request payload
-type RegisterRequest struct {
-	Email                 string `json:"email" binding:"required,email"`
-	Password              string `json:"password" binding:"required,min=6"`
-	VerifyCode            string `json:"verify_code"`
-	TurnstileToken        string `json:"turnstile_token"`
-	TencentCaptchaTicket  string `json:"tencent_captcha_ticket"`
-	TencentCaptchaRandstr string `json:"tencent_captcha_randstr"`
-	PromoCode             string `json:"promo_code"`      // 注册优惠码
-	InvitationCode        string `json:"invitation_code"` // 邀请码
-	AffCode               string `json:"aff_code"`        // 邀请返利码
-}
-
-// SendVerifyCodeRequest 发送验证码请求
-type SendVerifyCodeRequest struct {
-	Email                 string `json:"email" binding:"required,email"`
-	TurnstileToken        string `json:"turnstile_token"`
-	TencentCaptchaTicket  string `json:"tencent_captcha_ticket"`
-	TencentCaptchaRandstr string `json:"tencent_captcha_randstr"`
-}
-
-// SendVerifyCodeResponse 发送验证码响应
-type SendVerifyCodeResponse struct {
-	Message   string `json:"message"`
-	Countdown int    `json:"countdown"` // 倒计时秒数
-}
-
 // LoginRequest represents the login request payload
 type LoginRequest struct {
-	Email                 string `json:"email" binding:"required,email"`
+	Username              string `json:"username" binding:"required"`
 	Password              string `json:"password" binding:"required"`
 	TurnstileToken        string `json:"turnstile_token"`
 	TencentCaptchaTicket  string `json:"tencent_captcha_ticket"`
 	TencentCaptchaRandstr string `json:"tencent_captcha_randstr"`
+}
+
+// SendVerifyCodeResponse 发送验证码响应（OAuth pending 邮箱验证流程复用它）
+type SendVerifyCodeResponse struct {
+	Message   string `json:"message"`
+	Countdown int    `json:"countdown"` // 倒计时秒数
 }
 
 func captchaProof(turnstileToken, tencentTicket, tencentRandstr string) service.CaptchaProof {
@@ -174,66 +151,6 @@ func (h *AuthHandler) isBackendModeEnabled(ctx context.Context) bool {
 	return h.settingSvc.IsBackendModeEnabled(ctx)
 }
 
-// Register handles user registration
-// POST /api/v1/auth/register
-func (h *AuthHandler) Register(c *gin.Context) {
-	var req RegisterRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "Invalid request: "+err.Error())
-		return
-	}
-
-	// 验证当前启用的验证码（邮箱验证码注册场景避免重复校验一次性票据）
-	proof := captchaProof(req.TurnstileToken, req.TencentCaptchaTicket, req.TencentCaptchaRandstr)
-	if err := h.authService.VerifyCaptchaForRegister(c.Request.Context(), proof, ip.GetClientIP(c), req.VerifyCode); err != nil {
-		response.ErrorFrom(c, err)
-		return
-	}
-
-	_, user, err := h.authService.RegisterWithVerification(
-		c.Request.Context(),
-		req.Email,
-		req.Password,
-		req.VerifyCode,
-		req.PromoCode,
-		req.InvitationCode,
-		req.AffCode,
-	)
-	if err != nil {
-		response.ErrorFrom(c, err)
-		return
-	}
-
-	h.respondWithTokenPair(c, user)
-}
-
-// SendVerifyCode 发送邮箱验证码
-// POST /api/v1/auth/send-verify-code
-func (h *AuthHandler) SendVerifyCode(c *gin.Context) {
-	var req SendVerifyCodeRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "Invalid request: "+err.Error())
-		return
-	}
-
-	proof := captchaProof(req.TurnstileToken, req.TencentCaptchaTicket, req.TencentCaptchaRandstr)
-	if err := h.authService.VerifyCaptcha(c.Request.Context(), proof, ip.GetClientIP(c)); err != nil {
-		response.ErrorFrom(c, err)
-		return
-	}
-
-	result, err := h.authService.SendVerifyCodeAsync(c.Request.Context(), req.Email, c.GetHeader("Accept-Language"))
-	if err != nil {
-		response.ErrorFrom(c, err)
-		return
-	}
-
-	response.Success(c, SendVerifyCodeResponse{
-		Message:   "Verification code sent successfully",
-		Countdown: result.Countdown,
-	})
-}
-
 // Login handles user login
 // POST /api/v1/auth/login
 func (h *AuthHandler) Login(c *gin.Context) {
@@ -249,7 +166,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	token, user, err := h.authService.Login(c.Request.Context(), req.Email, req.Password)
+	token, user, err := h.authService.Login(c.Request.Context(), req.Username, req.Password)
 	if err != nil {
 		response.ErrorFrom(c, err)
 		return
@@ -453,75 +370,6 @@ func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
 	response.Success(c, UserResponse{
 		userProfileResponse: userProfileResponseFromService(user, identities),
 		RunMode:             runMode,
-	})
-}
-
-// ValidatePromoCodeRequest 验证优惠码请求
-type ValidatePromoCodeRequest struct {
-	Code string `json:"code" binding:"required"`
-}
-
-// ValidatePromoCodeResponse 验证优惠码响应
-type ValidatePromoCodeResponse struct {
-	Valid       bool    `json:"valid"`
-	BonusAmount float64 `json:"bonus_amount,omitempty"`
-	ErrorCode   string  `json:"error_code,omitempty"`
-	Message     string  `json:"message,omitempty"`
-}
-
-// ValidatePromoCode 验证优惠码（公开接口，注册前调用）
-// POST /api/v1/auth/validate-promo-code
-func (h *AuthHandler) ValidatePromoCode(c *gin.Context) {
-	// 检查优惠码功能是否启用
-	if h.settingSvc != nil && !h.settingSvc.IsPromoCodeEnabled(c.Request.Context()) {
-		response.Success(c, ValidatePromoCodeResponse{
-			Valid:     false,
-			ErrorCode: "PROMO_CODE_DISABLED",
-		})
-		return
-	}
-
-	var req ValidatePromoCodeRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "Invalid request: "+err.Error())
-		return
-	}
-
-	promoCode, err := h.promoService.ValidatePromoCode(c.Request.Context(), req.Code)
-	if err != nil {
-		// 根据错误类型返回对应的错误码
-		errorCode := "PROMO_CODE_INVALID"
-		switch err {
-		case service.ErrPromoCodeNotFound:
-			errorCode = "PROMO_CODE_NOT_FOUND"
-		case service.ErrPromoCodeExpired:
-			errorCode = "PROMO_CODE_EXPIRED"
-		case service.ErrPromoCodeDisabled:
-			errorCode = "PROMO_CODE_DISABLED"
-		case service.ErrPromoCodeMaxUsed:
-			errorCode = "PROMO_CODE_MAX_USED"
-		case service.ErrPromoCodeAlreadyUsed:
-			errorCode = "PROMO_CODE_ALREADY_USED"
-		}
-
-		response.Success(c, ValidatePromoCodeResponse{
-			Valid:     false,
-			ErrorCode: errorCode,
-		})
-		return
-	}
-
-	if promoCode == nil {
-		response.Success(c, ValidatePromoCodeResponse{
-			Valid:     false,
-			ErrorCode: "PROMO_CODE_INVALID",
-		})
-		return
-	}
-
-	response.Success(c, ValidatePromoCodeResponse{
-		Valid:       true,
-		BonusAmount: promoCode.BonusAmount,
 	})
 }
 

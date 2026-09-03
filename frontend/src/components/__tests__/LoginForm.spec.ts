@@ -40,13 +40,13 @@ vi.mock('@/api/auth', () => ({
 const LoginFormTestComponent = defineComponent({
   setup() {
     const authStore = useAuthStore()
-    const formData = reactive({ email: '', password: '' })
+    const formData = reactive({ username: '', password: '' })
     const isLoading = ref(false)
     const errorMessage = ref('')
 
     const handleLogin = async () => {
-      if (!formData.email || !formData.password) {
-        errorMessage.value = '请输入邮箱和密码'
+      if (!formData.username || !formData.password) {
+        errorMessage.value = '请输入用户名和密码'
         return
       }
 
@@ -55,7 +55,7 @@ const LoginFormTestComponent = defineComponent({
 
       try {
         const response = await authStore.login({
-          email: formData.email,
+          username: formData.username,
           password: formData.password,
         })
 
@@ -77,7 +77,7 @@ const LoginFormTestComponent = defineComponent({
   },
   template: `
     <form @submit.prevent="handleLogin">
-      <input id="email" v-model="formData.email" type="email" />
+      <input id="username" v-model="formData.username" type="text" />
       <input id="password" v-model="formData.password" type="password" />
       <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
       <button type="submit" :disabled="isLoading">登录</button>
@@ -100,13 +100,13 @@ describe('LoginForm 核心逻辑', () => {
 
     const wrapper = mount(LoginFormTestComponent)
 
-    await wrapper.find('#email').setValue('test@example.com')
+    await wrapper.find('#username').setValue('test')
     await wrapper.find('#password').setValue('password123')
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
     expect(mockLogin).toHaveBeenCalledWith({
-      email: 'test@example.com',
+      username: 'test',
       password: 'password123',
     })
     expect(mockPush).toHaveBeenCalledWith('/dashboard')
@@ -117,7 +117,7 @@ describe('LoginForm 核心逻辑', () => {
 
     const wrapper = mount(LoginFormTestComponent)
 
-    await wrapper.find('#email').setValue('test@example.com')
+    await wrapper.find('#username').setValue('test')
     await wrapper.find('#password').setValue('wrong')
     await wrapper.find('form').trigger('submit')
     await flushPromises()
@@ -131,7 +131,7 @@ describe('LoginForm 核心逻辑', () => {
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
-    expect(wrapper.find('.error').text()).toBe('请输入邮箱和密码')
+    expect(wrapper.find('.error').text()).toBe('请输入用户名和密码')
     expect(mockLogin).not.toHaveBeenCalled()
   })
 
@@ -143,7 +143,7 @@ describe('LoginForm 核心逻辑', () => {
 
     const wrapper = mount(LoginFormTestComponent)
 
-    await wrapper.find('#email').setValue('test@example.com')
+    await wrapper.find('#username').setValue('test')
     await wrapper.find('#password').setValue('password123')
     await wrapper.find('form').trigger('submit')
     await flushPromises()
@@ -160,7 +160,7 @@ describe('LoginForm 核心逻辑', () => {
 
     const wrapper = mount(LoginFormTestComponent)
 
-    await wrapper.find('#email').setValue('test@example.com')
+    await wrapper.find('#username').setValue('test')
     await wrapper.find('#password').setValue('password123')
     await wrapper.find('form').trigger('submit')
 

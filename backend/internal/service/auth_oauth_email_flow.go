@@ -281,6 +281,8 @@ func (s *AuthService) FinalizeOAuthEmailAccount(
 	if s == nil || user == nil || user.ID <= 0 {
 		return ErrServiceUnavailable
 	}
+	// Retain the parameter for clients that submit aff_code with OAuth signup.
+	_ = affiliateCode
 
 	signupSource = normalizeOAuthSignupSource(signupSource)
 	invitationRedeemCode, err := s.validateOAuthRegistrationInvitation(ctx, invitationCode)
@@ -298,7 +300,6 @@ func (s *AuthService) FinalizeOAuthEmailAccount(
 	s.assignSubscriptions(ctx, user.ID, grantPlan.Subscriptions, "auto assigned by signup defaults")
 	// snapshot user × platform quota（fail-open）
 	_ = s.snapshotPlatformQuotaDefaults(ctx, user.ID, &grantPlan)
-	s.bindOAuthAffiliate(ctx, user.ID, affiliateCode)
 	return nil
 }
 

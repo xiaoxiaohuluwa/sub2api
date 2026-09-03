@@ -103,6 +103,7 @@ type RedisConfig struct {
 }
 
 type AdminConfig struct {
+	Username string `json:"username"` // 登录用户名（默认 admin），替代邮箱登录
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
@@ -427,6 +428,7 @@ func createAdminUser(cfg *SetupConfig) (bool, string, error) {
 	}
 
 	admin := &service.User{
+		Username:    strings.TrimSpace(cfg.Admin.Username),
 		Email:       cfg.Admin.Email,
 		Role:        service.RoleAdmin,
 		Status:      service.StatusActive,
@@ -442,8 +444,9 @@ func createAdminUser(cfg *SetupConfig) (bool, string, error) {
 
 	_, err = db.ExecContext(
 		ctx,
-		`INSERT INTO users (email, password_hash, role, balance, concurrency, status, created_at, updated_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		`INSERT INTO users (username, email, password_hash, role, balance, concurrency, status, created_at, updated_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+		admin.Username,
 		admin.Email,
 		admin.PasswordHash,
 		admin.Role,
@@ -593,6 +596,7 @@ func AutoSetupFromEnv() error {
 			EnableTLS: getEnvOrDefault("REDIS_ENABLE_TLS", "false") == "true",
 		},
 		Admin: AdminConfig{
+			Username: getEnvOrDefault("ADMIN_USERNAME", "admin"),
 			Email:    getEnvOrDefault("ADMIN_EMAIL", "admin@example.com"),
 			Password: getEnvOrDefault("ADMIN_PASSWORD", "admin123"),
 		},
@@ -673,5 +677,53 @@ func AutoSetupFromEnv() error {
 	logger.LegacyPrintf("setup", "%s", "Installation lock created")
 
 	logger.LegacyPrintf("setup", "%s", "Auto setup completed successfully!")
+	return nil
+}
+
+// EnsureAdminUser 在系统已安装（config 已存在）且用户表为空时兜底创建管理员账号。
+//
+// 背景：迁移 234 会清空 users 表（邮箱登录移除，改为 username 登录）。
+// 已部署实例不会重新走 setup 流程（config/install lock 已存在），
+// 因此启动阶段需要兜底重建唯一的管理员账号，否则系统将无人可登录。
+func EnsureAdminUser() error {
+	cfg, err := config.LoadForBootstrap()
+	if err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
+
+	setupCfg := &SetupConfig{
+		Database: DatabaseConfig{
+			Host:     cfg.Database.Host,
+			Port:     cfg.Database.Port,
+			User:     cfg.Database.User,
+			Password: cfg.Database.Password,
+			DBName:   cfg.Database.DBName,
+			SSLMode:  cfg.Database.SSLMode,
+		},
+		Admin: AdminConfig{
+			Username: getEnvOrDefault("ADMIN_USERNAME", "admin"),
+			Email:    cfg.Default.AdminEmail,
+			Password: cfg.Default.AdminPassword,
+		},
+	}
+	if strings.TrimSpace(setupCfg.Admin.Email) == "" {
+		setupCfg.Admin.Email = getEnvOrDefault("ADMIN_EMAIL", "admin@example.com")
+	}
+	if strings.TrimSpace(setupCfg.Admin.Password) == "" {
+		setupCfg.Admin.Password = getEnvOrDefault("ADMIN_PASSWORD", "admin123")
+	}
+
+	created, reason, err := createAdminUser(setupCfg)
+	if err != nil {
+		return fmt.Errorf("ensure admin user: %w", err)
+	}
+	switch {
+	case created:
+		logger.LegacyPrintf("setup", "Admin user ensured: username=%s email=%s", setupCfg.Admin.Username, setupCfg.Admin.Email)
+	case reason == adminBootstrapReasonAdminExists:
+		logger.LegacyPrintf("setup", "%s", "Admin user already exists, skipping bootstrap")
+	default:
+		logger.LegacyPrintf("setup", "Admin bootstrap skipped (reason=%s)", reason)
+	}
 	return nil
 }

@@ -143,8 +143,6 @@ export default {
         emailDomainQuota: 'Non-allowlist Domain Quota',
         emailDomainQuotaHint:
           'When enabled and the allowlist is not empty, every other registrable domain can register one account. When disabled, non-allowlist domains are rejected. Has no effect while the allowlist is empty',
-        promoCode: 'Promo Code',
-        promoCodeHint: 'Allow users to use promo codes during registration',
         invitationCode: 'Invitation Code Registration',
         invitationCodeHint: 'When enabled, users must enter a valid invitation code to register',
         passwordReset: 'Password Reset',
@@ -868,9 +866,6 @@ export default {
         threshold: 'Default Threshold',
         thresholdHint: 'Used when user has not set a custom value',
         thresholdPlaceholder: 'Enter amount',
-        rechargeUrl: 'Recharge Page URL',
-        rechargeUrlPlaceholder: 'https://example.com/payment',
-        rechargeUrlHint: 'A top-up button will appear in the email when set',
       },
       quotaNotify: {
         title: 'Account Quota Notification',
@@ -880,12 +875,6 @@ export default {
         emailsHint: 'Leave empty to disable notifications',
         addEmail: 'Add Email',
         emailPlaceholder: 'Enter email address',
-      },
-      subscriptionExpiryNotify: {
-        title: 'Subscription Expiry Reminder',
-        description: 'Control whether users receive subscription expiry reminder emails.',
-        enabled: 'Enable Subscription Expiry Reminder',
-        enabledHint: 'When enabled, the system sends reminders 7, 3, and 1 day before expiry.'
       },
       smtp: {
         title: 'SMTP Settings',

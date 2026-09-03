@@ -237,6 +237,36 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*service
 	return out, nil
 }
 
+// GetByUsername 按用户名精确查找用户。
+// username 已通过 234 迁移加部分唯一索引（软删除后可复用）；此处仍保留重复检测
+// 以避免历史上未加索引时可能出现的脏数据。
+func (r *userRepository) GetByUsername(ctx context.Context, username string) (*service.User, error) {
+	matches, err := r.client.User.Query().
+		Where(dbuser.UsernameEQ(strings.TrimSpace(username))).
+		Order(dbent.Asc(dbuser.FieldID)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(matches) == 0 {
+		return nil, service.ErrUserNotFound
+	}
+	if len(matches) > 1 {
+		return nil, fmt.Errorf("username lookup matched multiple users for %q", strings.TrimSpace(username))
+	}
+	m := matches[0]
+
+	out := userEntityToService(m)
+	groups, err := r.loadAllowedGroups(ctx, []int64{m.ID})
+	if err != nil {
+		return nil, err
+	}
+	if v, ok := groups[m.ID]; ok {
+		out.AllowedGroups = v
+	}
+	return out, nil
+}
+
 func (r *userRepository) Update(ctx context.Context, userIn *service.User, fields service.UserUpdateFields) error {
 	if userIn == nil {
 		return nil

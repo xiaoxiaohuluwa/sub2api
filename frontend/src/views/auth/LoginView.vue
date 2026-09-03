@@ -12,26 +12,26 @@
       </div>
       <!-- Login Form -->
       <form @submit.prevent="handleLogin" class="space-y-5">
-        <!-- Email Input -->
+        <!-- Username Input -->
         <div>
-          <label for="email" class="input-label">
-            {{ t('auth.emailLabel') }}
+          <label for="username" class="input-label">
+            {{ t('auth.usernameLabel') }}
           </label>
           <div class="relative">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
-              <Icon name="mail" size="md" class="text-gray-400 dark:text-dark-500" />
+              <Icon name="user" size="md" class="text-gray-400 dark:text-dark-500" />
             </div>
             <input
-              id="email"
-              v-model="formData.email"
-              type="email"
+              id="username"
+              v-model="formData.username"
+              type="text"
               required
               autofocus
-              autocomplete="email"
+              autocomplete="username"
               :disabled="authActionDisabled"
               class="input pl-11"
-              :class="{ 'input-error': errors.email }"
-              :placeholder="t('auth.emailPlaceholder')"
+              :class="{ 'input-error': errors.username }"
+              :placeholder="t('auth.usernamePlaceholder')"
             />
           </div>
         </div>
@@ -197,17 +197,6 @@
     </div>
 
     <!-- Footer -->
-    <template v-if="!backendModeEnabled" #footer>
-      <p class="text-gray-500 dark:text-dark-400">
-        {{ t('auth.dontHaveAccount') }}
-        <router-link
-          to="/register"
-          class="font-medium text-primary-600 transition-colors hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
-        >
-          {{ t('auth.signUp') }}
-        </router-link>
-      </p>
-    </template>
   </AuthLayout>
 
   <!-- 2FA Modal -->
@@ -250,7 +239,6 @@ import type {
   TotpLoginResponse
 } from '@/types'
 import { extractI18nErrorMessage } from '@/utils/apiError'
-import { clearAllAffiliateReferralCodes } from '@/utils/oauthAffiliate'
 
 const { t } = useI18n()
 const LOGIN_AGREEMENT_STORAGE_KEY = 'sub2api_login_agreement_consent'
@@ -325,18 +313,18 @@ const totpUserEmailMasked = ref<string>('')
 const totpModalRef = ref<InstanceType<typeof TotpLoginModal> | null>(null)
 
 const formData = reactive({
-  email: '',
+  username: '',
   password: ''
 })
 
 const errors = reactive({
-  email: '',
+  username: '',
   password: '',
   turnstile: ''
 })
 
 const validationToastMessage = computed(
-  () => errors.email || errors.password || errors.turnstile || ''
+  () => errors.username || errors.password || errors.turnstile || ''
 )
 
 const agreementGateActive = computed(
@@ -515,7 +503,7 @@ async function acquireActionProof(): Promise<boolean> {
 
 function validateForm(): boolean {
   // Reset errors
-  errors.email = ''
+  errors.username = ''
   errors.password = ''
   errors.turnstile = ''
 
@@ -529,12 +517,9 @@ function validateForm(): boolean {
     return false
   }
 
-  // Email validation
-  if (!formData.email.trim()) {
-    errors.email = t('auth.emailRequired')
-    isValid = false
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-    errors.email = t('auth.invalidEmail')
+  // Username validation
+  if (!formData.username.trim()) {
+    errors.username = t('auth.usernameRequired')
     isValid = false
   }
 
@@ -576,7 +561,7 @@ async function handleLogin(): Promise<void> {
   try {
     // Call auth store login（阿里云 captchaVerifyParam 复用 turnstile_token 字段）
     const response = await authStore.login({
-      email: formData.email,
+      username: formData.username.trim(),
       password: formData.password,
       turnstile_token:
         turnstileEnabled.value || aliyunCaptchaEnabled.value ? turnstileToken.value : undefined,
@@ -597,7 +582,6 @@ async function handleLogin(): Promise<void> {
     }
 
     // Show success toast
-    clearAllAffiliateReferralCodes()
     appStore.showSuccess(t('auth.loginSuccess'))
 
     // Redirect to dashboard or intended route
@@ -640,7 +624,6 @@ async function handlePasskeyLogin(): Promise<void> {
     }
 
     await authStore.loginWithPasskey(proof)
-    clearAllAffiliateReferralCodes()
     appStore.showSuccess(t('auth.loginSuccess'))
     const redirectTo = (router.currentRoute.value.query.redirect as string) || '/dashboard'
     await router.push(redirectTo)
@@ -707,7 +690,6 @@ async function handle2FAVerify(code: string): Promise<void> {
 
     // Close modal and show success
     show2FAModal.value = false
-    clearAllAffiliateReferralCodes()
     appStore.showSuccess(t('auth.loginSuccess'))
 
     // Redirect to dashboard or intended route
