@@ -182,8 +182,6 @@ export default {
     logout: 'Logout',
     github: 'GitHub',
     docs: 'Docs',
-    channelManagement: 'Channels',
-    channelMonitor: 'Channel Monitor',
     channelStatus: 'Channel Status',
     riskControl: 'Risk Control',
     securityAudit: 'Security Audit',

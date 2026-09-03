@@ -182,8 +182,6 @@ export default {
     logout: '退出登录',
     github: 'GitHub',
     docs: '文档',
-    channelManagement: '渠道管理',
-    channelMonitor: '渠道监控',
     channelStatus: '渠道状态',
     riskControl: '风控中心',
     securityAudit: '安全审计',
