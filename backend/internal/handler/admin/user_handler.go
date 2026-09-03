@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"

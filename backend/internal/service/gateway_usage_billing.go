@@ -466,8 +466,6 @@ func notifyBalanceLow(p *postUsageBillingParams, deps *billingDeps, result *Usag
 		"user_id", p.User.ID,
 		"old_balance", oldBalance,
 		"cost", p.Cost.ActualCost,
-		"notify_enabled", p.User.BalanceNotifyEnabled,
-		"threshold", p.User.BalanceNotifyThreshold,
 		"result_has_new_balance", result != nil && result.NewBalance != nil,
 	)
 	deps.balanceNotifyService.CheckBalanceAfterDeduction(context.Background(), p.User, oldBalance, p.Cost.ActualCost)

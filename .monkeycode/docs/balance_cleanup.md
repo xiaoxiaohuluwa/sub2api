@@ -20,7 +20,7 @@
 - API endpoint 中 balance 相关接口定义
 - Store 中 balance 相关状态
 
-### Batch 3 - 后端余额路由/处理器/服务删除（已推送 319a5a3a9）
+### Batch 3 - 后端余额路由/处理器/服务删除（已推送 05e76f5e0）
 - `user_handler.go` 移除 `UpdateBalanceRequest` struct、`UpdateBalance`、`GetBalanceHistory` 方法
 - `admin.go` 路由移除 `POST /:id/balance` 和 `GET /:id/balance-history`
 - `admin_service.go` 接口移除 `UpdateUserBalance`、`GetUserBalanceHistory`
@@ -31,12 +31,16 @@
 - `admin_service_stub_test.go` 移除 `GetUserBalanceHistory` 桩方法
 - `admin_basic_handlers_test.go` 移除 balance 路由测试
 
-### Batch 4 - 后端余额服务删除
-- BalanceNotifyService
-- CNProviderBalanceService / CNProviderBalanceCheckService
-- User UpdateBalance / currentBalance
-- Admin User UpdateBalance
-- 余额相关配置字段
+### Batch 4 - 后端用户余额通知配置与API清理（已推送 319a5a3a9->当前批次）
+- `user_handler.go` 移除 `SendNotifyEmailCode`/`VerifyNotifyEmail`/`RemoveNotifyEmail`/`ToggleNotifyEmail` handler 及相关 request struct
+- `user_handler.go` `UpdateProfileRequest` 移除 `BalanceNotifyEnabled`/`BalanceNotifyThreshold`
+- `user_service.go` `UpdateProfileRequest` 移除 `BalanceNotifyEnabled`/`BalanceNotifyThreshold`
+- `user_service.go` `UserUpdateFields` 移除 `BalanceNotifySettings`/`BalanceNotifyExtraEmails`
+- `user_service.go` 移除 `SendNotifyEmailCode`/`VerifyAndAddNotifyEmail`/`addOrVerifyNotifyEmail`/`RemoveNotifyEmail`/`ToggleNotifyEmail` 及辅助函数
+- `user_service.go` 移除 `maxNotifyEmails`/`notifyCodeUserRateLimit`/`notifyCodeUserRateWindow` 常量
+- `user_service.go` 移除 `notifyVerifyEmailTemplate` HTML 模板
+- `routes/user.go` 移除 `/notify-email` 路由组
+- `gateway_usage_billing.go` 移除日志中的 `notify_enabled`/`threshold` 字段
 
 ### Batch 5 - 配置/迁移/Setup清理
 - config.yaml / config.go 中 balance 相关配置
