@@ -1776,12 +1776,6 @@ func (h *GatewayHandler) usageUnrestricted(c *gin.Context, ctx context.Context, 
 	}
 
 	// 余额模式
-	latestUser, err := h.userService.GetByID(ctx, subject.UserID)
-	if err != nil {
-		h.errorResponse(c, http.StatusInternalServerError, "api_error", "Failed to get user info")
-		return
-	}
-
 	resp := gin.H{
 		"mode":     "unrestricted",
 		"isValid":  true,

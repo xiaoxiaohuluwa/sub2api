@@ -42,10 +42,10 @@
 - `routes/user.go` 移除 `/notify-email` 路由组
 - `gateway_usage_billing.go` 移除日志中的 `notify_enabled`/`threshold` 字段
 
-### Batch 5 - 配置/迁移/Setup清理
-- config.yaml / config.go 中 balance 相关配置
-- setup.go 中 user_balance 默认值
-- 已过期的 balance 相关迁移清理
+### Batch 5 - 配置/Setup清理（待提交）
+- setup 生成的配置文件移除 `user_balance` 输出项
+- `backend/config.yaml` 和 `deploy/config.example.yaml` 移除 `user_balance`
+- 保留 `DefaultConfig.UserBalance` 及历史迁移，供现有内部用户账本和已部署数据库兼容
 
 ### Batch 6 - 残余引用清理
 - 测试文件更新

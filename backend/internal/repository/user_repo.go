@@ -350,18 +350,6 @@ func (r *userRepository) Update(ctx context.Context, userIn *service.User, field
 	if fields.RestrictPublicGroups {
 		updateOp = updateOp.SetRestrictPublicGroups(userIn.RestrictPublicGroups)
 	}
-	if fields.BalanceNotifySettings {
-		updateOp = updateOp.
-			SetBalanceNotifyEnabled(userIn.BalanceNotifyEnabled).
-			SetBalanceNotifyThresholdType(userIn.BalanceNotifyThresholdType).
-			SetNillableBalanceNotifyThreshold(userIn.BalanceNotifyThreshold)
-		if userIn.BalanceNotifyThreshold == nil {
-			updateOp = updateOp.ClearBalanceNotifyThreshold()
-		}
-	}
-	if fields.BalanceNotifyExtraEmails {
-		updateOp = updateOp.SetBalanceNotifyExtraEmails(marshalExtraEmails(userIn.BalanceNotifyExtraEmails))
-	}
 	if fields.SignupSource && userIn.SignupSource != "" {
 		updateOp = updateOp.SetSignupSource(userIn.SignupSource)
 	}
@@ -1578,11 +1566,6 @@ func userSignupSourceOrDefault(signupSource string) string {
 	default:
 		return "email"
 	}
-}
-
-// marshalExtraEmails serializes notify email entries to JSON for storage.
-func marshalExtraEmails(entries []service.NotifyEmailEntry) string {
-	return service.MarshalNotifyEmails(entries)
 }
 
 // UpdateTotpSecret 更新用户的 TOTP 加密密钥
