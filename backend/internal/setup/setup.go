@@ -593,8 +593,8 @@ func AutoSetupFromEnv() error {
 			EnableTLS: getEnvOrDefault("REDIS_ENABLE_TLS", "false") == "true",
 		},
 		Admin: AdminConfig{
-			Email:    getEnvOrDefault("ADMIN_EMAIL", "admin@sub2api.local"),
-			Password: getEnvOrDefault("ADMIN_PASSWORD", ""),
+			Email:    getEnvOrDefault("ADMIN_EMAIL", "admin@example.com"),
+			Password: getEnvOrDefault("ADMIN_PASSWORD", "admin123"),
 		},
 		Server: ServerConfig{
 			Host: getEnvOrDefault("SERVER_HOST", "0.0.0.0"),

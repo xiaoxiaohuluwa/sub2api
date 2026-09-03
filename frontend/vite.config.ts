@@ -82,15 +82,16 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const backendUrl = env.VITE_DEV_PROXY_TARGET || 'http://localhost:8080'
   const devPort = Number(env.VITE_DEV_PORT || 3000)
+  const disableChecker = env.VITE_DISABLE_CHECKER === 'true'
+
+  const plugins: Plugin[] = [vue()]
+  if (!disableChecker) {
+    plugins.push(checker({ vueTsc: true }))
+  }
+  plugins.push(injectPublicSettings(backendUrl))
 
   return {
-    plugins: [
-      vue(),
-      checker({
-        vueTsc: true
-      }),
-      injectPublicSettings(backendUrl)
-    ],
+    plugins,
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
@@ -157,6 +158,7 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: devPort,
+      allowedHosts: ['.monkeycode-ai.online'],
       proxy: {
         '/api': {
           target: backendUrl,
