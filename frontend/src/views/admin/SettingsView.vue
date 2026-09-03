@@ -3826,24 +3826,6 @@
                   <label
                     class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                   >
-                    {{ t("admin.settings.defaults.defaultBalance") }}
-                  </label>
-                  <input
-                    v-model.number="form.default_balance"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    class="input"
-                    placeholder="0.00"
-                  />
-                  <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-                    {{ t("admin.settings.defaults.defaultBalanceHint") }}
-                  </p>
-                </div>
-                <div>
-                  <label
-                    class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
                     {{ t("admin.settings.defaults.defaultConcurrency") }}
                   </label>
                   <input
@@ -7538,51 +7520,6 @@
 
           <EmailTemplateEditor />
 
-          <!-- Balance Low Notification -->
-          <div class="card">
-            <div
-              class="border-b border-gray-100 px-6 py-4 dark:border-dark-700"
-            >
-              <h3 class="text-base font-medium text-gray-900 dark:text-white">
-                {{ t("admin.settings.balanceNotify.title") }}
-              </h3>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {{ t("admin.settings.balanceNotify.description") }}
-              </p>
-            </div>
-            <div class="px-6 py-6 space-y-4">
-              <div class="flex items-center justify-between">
-                <label
-                  class="mb-0 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >{{ t("admin.settings.balanceNotify.enabled") }}</label
-                >
-                <Toggle v-model="form.balance_low_notify_enabled" />
-              </div>
-              <div v-if="form.balance_low_notify_enabled">
-                <label
-                  class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >{{ t("admin.settings.balanceNotify.threshold") }}</label
-                >
-                <div class="relative">
-                  <span
-                    class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                    >$</span
-                  >
-                  <input
-                    v-model.number="form.balance_low_notify_threshold"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    class="input pl-7"
-                  />
-                </div>
-                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {{ t("admin.settings.balanceNotify.thresholdHint") }}
-                </p>
-              </div>
-            </div>
-          </div>
-
           <!-- Account Quota Notification -->
           <div class="card">
             <div
@@ -8407,7 +8344,6 @@ type SettingsForm = Omit<
   | "wechat_connect_mobile_enabled"
   | `payment_${string}`
   | `affiliate_${string}`
-  | "balance_low_notify_recharge_url"
   | "subscription_expiry_notify_enabled"
 > & {
   /** Form always binds a concrete boolean (SystemSettings marks this optional). */
@@ -8475,7 +8411,6 @@ const form = reactive<SettingsForm>({
   login_agreement_mode: "modal",
   login_agreement_updated_at: "2026-03-31",
   login_agreement_documents: defaultLoginAgreementDocuments(),
-  default_balance: 0,
   default_platform_quotas: normalizePlatformQuotasMap() as DefaultPlatformQuotasMap,
   account_scheduling_thresholds: normalizeAccountSchedulingThresholdsMap(),
   default_concurrency: 1,
@@ -8685,9 +8620,6 @@ const form = reactive<SettingsForm>({
   codex_cli_only_whitelist: "",
   codex_cli_only_allow_app_server_clients: false,
   codex_cli_only_engine_fingerprint_signals: "",
-  // 余额与账号限额通知
-  balance_low_notify_enabled: false,
-  balance_low_notify_threshold: 0,
   account_quota_notify_enabled: false,
   account_quota_notify_emails: [] as NotifyEmailEntry[],
   // Channel Monitor feature switch
@@ -10071,7 +10003,6 @@ async function saveSettings() {
       login_agreement_mode: form.login_agreement_mode,
       login_agreement_updated_at: form.login_agreement_updated_at,
       login_agreement_documents: form.login_agreement_documents,
-      default_balance: form.default_balance,
       default_concurrency: form.default_concurrency,
       default_subscriptions: normalizedDefaultSubscriptions,
       force_email_on_third_party_signup: form.force_email_on_third_party_signup,
@@ -10293,10 +10224,6 @@ async function saveSettings() {
         form.openai_advanced_scheduler_weight_previous_response.trim(),
       openai_advanced_scheduler_weight_session_sticky:
         form.openai_advanced_scheduler_weight_session_sticky.trim(),
-      // 余额与账号限额通知
-      balance_low_notify_enabled: form.balance_low_notify_enabled,
-      balance_low_notify_threshold:
-        Number(form.balance_low_notify_threshold) || 0,
       account_quota_notify_enabled: form.account_quota_notify_enabled,
       account_quota_notify_emails: (
         form.account_quota_notify_emails || []

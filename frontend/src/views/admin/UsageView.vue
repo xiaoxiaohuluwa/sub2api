@@ -174,13 +174,6 @@
     :end-date="endDate"
     @close="cleanupDialogVisible = false"
   />
-  <!-- Balance history modal triggered from usage table user click -->
-  <UserBalanceHistoryModal
-    :show="showBalanceHistoryModal"
-    :user="balanceHistoryUser"
-    :hide-actions="true"
-    @close="showBalanceHistoryModal = false; balanceHistoryUser = null"
-  />
 </template>
 
 <script setup lang="ts">
@@ -197,7 +190,6 @@ import UsageStatsCards from '@/components/admin/usage/UsageStatsCards.vue'; impo
 import UsageTable from '@/components/admin/usage/UsageTable.vue'; import UsageExportProgress from '@/components/admin/usage/UsageExportProgress.vue'
 import UserTokenRanking from '@/components/admin/usage/UserTokenRanking.vue'
 import UsageCleanupDialog from '@/components/admin/usage/UsageCleanupDialog.vue'
-import UserBalanceHistoryModal from '@/components/admin/user/UserBalanceHistoryModal.vue'
 import OpsErrorLogTable from '@/views/admin/ops/components/OpsErrorLogTable.vue'
 import OpsErrorDetailModal from '@/views/admin/ops/components/OpsErrorDetailModal.vue'
 import { listErrorLogs } from '@/api/admin/ops'
@@ -235,9 +227,6 @@ let statsReqSeq = 0
 let modelStatsReqSeq = 0
 const exportProgress = reactive({ show: false, progress: 0, current: 0, total: 0, estimatedTime: '' })
 const cleanupDialogVisible = ref(false)
-// Balance history modal state
-const showBalanceHistoryModal = ref(false)
-const balanceHistoryUser = ref<AdminUser | null>(null)
 
 const breakdownFilters = computed(() => {
   const f: Record<string, any> = {}

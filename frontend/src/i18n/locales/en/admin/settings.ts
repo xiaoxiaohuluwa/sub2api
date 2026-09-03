@@ -384,8 +384,6 @@ export default {
       defaults: {
         title: 'Default User Settings',
         description: 'Default values for new users',
-        defaultBalance: 'Default Balance',
-        defaultBalanceHint: 'Initial balance for new users',
         affiliateRebateRate: 'Affiliate Rebate Rate',
         affiliateRebateRateHint:
           'Rebate percentage credited to inviter after recharge (0-100%, e.g. 10 means 10%)',
@@ -858,14 +856,6 @@ export default {
         refundEnabled: 'Allow Refund',
         allowUserRefund: 'Allow User Refund',
         enableConflict: '{method} already has an enabled provider instance: {provider}. Disable the existing instance before switching.',
-      },
-      balanceNotify: {
-        title: 'Balance Low Notification',
-        description: 'Send email notification when user balance falls below threshold',
-        enabled: 'Enable Balance Low Notification',
-        threshold: 'Default Threshold',
-        thresholdHint: 'Used when user has not set a custom value',
-        thresholdPlaceholder: 'Enter amount',
       },
       quotaNotify: {
         title: 'Account Quota Notification',

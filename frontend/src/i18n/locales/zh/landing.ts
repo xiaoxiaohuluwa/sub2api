@@ -54,8 +54,6 @@ export default {
       unifiedGatewayDesc: '获取一个 API 密钥，即可调用所有已接入的 AI 模型，无需分别申请。',
       multiAccount: '稳定可靠',
       multiAccountDesc: '智能调度多个上游账号，自动切换和负载均衡，告别频繁报错。',
-      balanceQuota: '用多少付多少',
-      balanceQuotaDesc: '按实际使用量计费，支持设置配额上限，团队用量一目了然。'
     },
     // 优势对比
     comparison: {

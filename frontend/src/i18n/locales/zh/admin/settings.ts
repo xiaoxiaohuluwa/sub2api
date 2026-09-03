@@ -381,8 +381,6 @@ export default {
       defaults: {
         title: '用户默认设置',
         description: '新用户的默认值',
-        defaultBalance: '默认余额',
-        defaultBalanceHint: '新用户的初始余额',
         affiliateRebateRate: '邀请返利比例',
         affiliateRebateRateHint: '充值后返给邀请人的比例（0-100%，例如填写 10 表示返利 10%）',
         defaultConcurrency: '默认并发数',
@@ -853,14 +851,6 @@ export default {
         refundEnabled: '允许退款',
         allowUserRefund: '允许用户退款',
         enableConflict: '{method} 已有启用中的服务商实例：{provider}。请先停用现有实例后再启用或切换。',
-      },
-      balanceNotify: {
-        title: '余额不足提醒',
-        description: '当用户余额低于阈值时发送邮件提醒',
-        enabled: '启用余额不足提醒',
-        threshold: '默认提醒阈值',
-        thresholdHint: '用户未自定义时使用此值',
-        thresholdPlaceholder: '输入金额',
       },
       quotaNotify: {
         title: '账号限额通知',
