@@ -197,7 +197,7 @@ import type { OpsErrorLog } from '@/api/admin/ops'
 import ModelDistributionChart from '@/components/charts/ModelDistributionChart.vue'; import GroupDistributionChart from '@/components/charts/GroupDistributionChart.vue'; import TokenUsageTrend from '@/components/charts/TokenUsageTrend.vue'
 import EndpointDistributionChart from '@/components/charts/EndpointDistributionChart.vue'
 import Icon from '@/components/icons/Icon.vue'
-import type { AdminUsageLog, TrendDataPoint, ModelStat, GroupStat, EndpointStat, AdminUser } from '@/types'; import type { AdminUsageStatsResponse, AdminUsageQueryParams } from '@/api/admin/usage'
+import type { AdminUsageLog, TrendDataPoint, ModelStat, GroupStat, EndpointStat } from '@/types'; import type { AdminUsageStatsResponse, AdminUsageQueryParams } from '@/api/admin/usage'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -244,14 +244,8 @@ const modelNameOptions = computed(() =>
   Array.from(new Set(requestedModelStats.value.map((m) => m.model).filter(Boolean))).sort()
 )
 
-const handleUserClick = async (userId: number) => {
-  try {
-    const user = await adminAPI.users.getById(userId, true)
-    balanceHistoryUser.value = user
-    showBalanceHistoryModal.value = true
-  } catch {
-    appStore.showError(t('admin.usage.failedToLoadUser'))
-  }
+const handleUserClick = (userId: number, email?: string) => {
+  handleRankingSelectUser(userId, email ?? '')
 }
 
 // Drill down from the per-user token ranking: scope the whole usage view to

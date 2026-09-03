@@ -12,7 +12,6 @@ import {
 import type {
   User,
   ChangePasswordRequest,
-  NotifyEmailEntry,
   UserAuthProvider,
   PlatformQuotasResponse,
 } from '@/types'
