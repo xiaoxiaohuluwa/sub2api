@@ -24,16 +24,6 @@ func TestUpdateProfile_OnlyDeclaresRequestedColumns(t *testing.T) {
 			req:  UpdateProfileRequest{Username: &username},
 			want: UserUpdateFields{Username: true},
 		},
-		{
-			name: "notify settings only",
-			req:  UpdateProfileRequest{BalanceNotifyEnabled: boolPtr(true)},
-			want: UserUpdateFields{BalanceNotifySettings: true},
-		},
-		{
-			name: "username and notify threshold",
-			req:  UpdateProfileRequest{Username: &username, BalanceNotifyThreshold: float64Ptr(1.5)},
-			want: UserUpdateFields{Username: true, BalanceNotifySettings: true},
-		},
 	}
 
 	for _, tt := range tests {

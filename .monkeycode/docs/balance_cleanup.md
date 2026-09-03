@@ -47,7 +47,7 @@
 - `backend/config.yaml` 和 `deploy/config.example.yaml` 移除 `user_balance`
 - 保留 `DefaultConfig.UserBalance` 及历史迁移，供现有内部用户账本和已部署数据库兼容
 
-### Batch 6 - 残余引用清理
-- 测试文件更新
-- Ent schema 中 balance 字段处理
-- wire 依赖注入清理
+### Batch 6 - 残余引用清理（进行中）
+- 删除已移除管理员余额服务对应的测试和测试桩
+- 删除基础 handler 测试中已失效的 `/balance` 请求
+- 保留内部账本、余额缓存、账户配额通知及其 Ent 字段，维持 API Key 计费链路
