@@ -116,3 +116,17 @@
 - 删除4个余额扣费测试
 - 保留：AccountQuotaCost（供应商账号配额）、平台配额、用量日志
 - 4 files changed, 6 insertions(+), 369 deletions(-)
+
+### Batch 18a - CheckBillingEligibility 简化（已推送 e4bb52f55）
+- 删除 CheckBillingEligibility 的 subscription/balance 资格检查
+- 函数签名去掉 subscription 参数，更新21个调用点（14个handler文件）
+- 删除未使用函数：checkBalanceEligibility、checkSubscriptionEligibility、minimumBalanceReserve、balanceBelowEligibilityThreshold
+- 保留：平台配额检查、API Key 限流、RPM 限流
+- 15 files changed, 24 insertions(+), 122 deletions(-)
+
+### Batch 18b-e - 计费套餐集群删除（进行中）
+- subscription/payment/redeem/affiliate/promo 5个子系统构成强耦合"计费套餐"集群
+- 通过 AuthService(注册邀请码)、PaymentService、wire.go、BillingCacheService、APIKeyService 深度耦合
+- 需整体删除约90+文件并重构上述枢纽
+- 依赖 UserSubscription 实体（Batch 21 处理 ent schema）
+- 保留：antigravity（外部供应商网关）、供应商账号配额、平台配额、用量统计
