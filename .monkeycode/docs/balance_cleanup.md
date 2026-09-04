@@ -89,3 +89,30 @@
 - 清理 domain_constants.go 常量
 - 重新生成 ent 和 wire 代码
 - 136 files changed, 207 insertions(+), 41705 deletions(-)
+
+### Batch 15 - 前端用户余额功能删除（已推送 76c8add84 + f2e3bf49e）
+- KeyUsageView 删除 wallet balance；UsersView 删除 balance_platform_quota 列
+- AnnouncementTargetingEditor 删除 balance 条件；EmailTemplateEditor 删除 balance 邮件模板
+- UserCreateModal 删除初始余额输入；AnnouncementReadStatusDialog 删除 balance 列
+- OpsSettingsDialog 删除 ignore_insufficient_balance_errors
+- api/admin/ops.ts、api/admin/settings.ts 删除对应字段
+- 7 files changed, 8 insertions(+), 41 deletions(-)
+
+### Batch 16 - 后端 BalanceNotifyService + 余额设置删除（已推送 6902d98b1 + 36c024ba3）
+- 删除 balance_notify_service.go 和3个测试文件（1386行）
+- 清理 user.go、api_key_auth_cache.go、gateway_usage_billing.go、gateway_service.go 等
+- 删除 SettingKeyDefaultBalance 和 SettingKeyBalanceLowNotify* 常量
+- 删除 GetDefaultBalance 函数及 auth_service/admin_user 调用者
+- 18 files changed + 15 files changed，共 -1728 lines
+
+### Batch 17 - 后端内部计费核心清理（已推送 2f972e776）
+- 删除 UsageBillingCommand 的 BalanceCost/SubscriptionCost/APIKeyQuotaCost/APIKeyRateLimitCost 4个字段
+- 删除 UsageBillingApplyResult 的 NewBalance/BalanceOverdrafted 字段
+- 删除 applyUsageBillingEffects 中的4个扣费分支（subscription/balance/APIKeyQuota/APIKeyRateLimit）
+- 删除扣费函数：incrementUsageBillingSubscription、deductUsageBillingBalance、incrementUsageBillingAPIKeyQuota、incrementUsageBillingAPIKeyRateLimit
+- 清理 gateway_usage_billing.go：删除4个cost赋值、syncBalanceCacheAfterDeduction、APIKeyQuotaExhausted处理、shouldDeductAPIKeyQuota
+- 简化 finalizePostUsageBilling 仅保留平台配额累加
+- 简化 legacy postUsageBilling 路径
+- 删除4个余额扣费测试
+- 保留：AccountQuotaCost（供应商账号配额）、平台配额、用量日志
+- 4 files changed, 6 insertions(+), 369 deletions(-)
