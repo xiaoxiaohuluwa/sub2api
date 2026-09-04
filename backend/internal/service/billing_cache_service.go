@@ -732,7 +732,7 @@ func (s *BillingCacheService) IncrementUserPlatformQuotaUsage(userID int64, plat
 // 余额模式：检查缓存余额 > 0
 // 订阅模式：检查缓存用量未超过限额（Group限额从参数传入）
 // platform 为请求的目标平台（如 "anthropic"），传空串 "" 时跳过 user × platform quota 检查。
-func (s *BillingCacheService) CheckBillingEligibility(ctx context.Context, user *User, apiKey *APIKey, group *Group, subscription *UserSubscription, platform string) error {
+func (s *BillingCacheService) CheckBillingEligibility(ctx context.Context, user *User, apiKey *APIKey, group *Group, platform string) error {
 	// 简易模式：跳过所有计费检查
 	if s.cfg.RunMode == config.RunModeSimple {
 		return nil
@@ -741,27 +741,12 @@ func (s *BillingCacheService) CheckBillingEligibility(ctx context.Context, user 
 		return ErrBillingServiceUnavailable
 	}
 
-	// 判断计费模式
-	isSubscriptionMode := group != nil && group.IsSubscriptionType() && subscription != nil
-
-	if isSubscriptionMode {
-		if err := s.checkSubscriptionEligibility(ctx, user.ID, group, subscription); err != nil {
-			return err
-		}
-	} else {
-		if err := s.checkBalanceEligibility(ctx, user.ID); err != nil {
-			return err
-		}
+	// user × platform quota 检查
+	if err := s.checkUserPlatformQuotaEligibility(ctx, user.ID, platform); err != nil {
+		return err
 	}
 
-	// user × platform quota 仅在 standard（余额）模式生效；订阅模式豁免
-	if !isSubscriptionMode {
-		if err := s.checkUserPlatformQuotaEligibility(ctx, user.ID, platform); err != nil {
-			return err
-		}
-	}
-
-	// Check API Key rate limits (applies to both billing modes)
+	// Check API Key rate limits
 	if apiKey != nil && apiKey.HasRateLimits() {
 		if err := s.checkAPIKeyRateLimits(ctx, apiKey); err != nil {
 			return err
@@ -855,83 +840,6 @@ func (s *BillingCacheService) checkRPM(ctx context.Context, user *User, group *G
 		if count > user.RPMLimit {
 			return ErrUserRPMExceeded
 		}
-	}
-
-	return nil
-}
-
-func (s *BillingCacheService) minimumBalanceReserve() float64 {
-	if s == nil || s.cfg == nil || s.cfg.Billing.MinimumBalanceReserve <= 0 {
-		return 0
-	}
-	return s.cfg.Billing.MinimumBalanceReserve
-}
-
-func (s *BillingCacheService) balanceBelowEligibilityThreshold(balance float64) bool {
-	if balance <= 0 {
-		return true
-	}
-	minimumReserve := s.minimumBalanceReserve()
-	return minimumReserve > 0 && balance < minimumReserve
-}
-
-// checkBalanceEligibility 检查余额模式资格
-func (s *BillingCacheService) checkBalanceEligibility(ctx context.Context, userID int64) error {
-	balance, err := s.GetUserBalance(ctx, userID)
-	if err != nil {
-		if s.circuitBreaker != nil {
-			s.circuitBreaker.OnFailure(err)
-		}
-		logger.LegacyPrintf("service.billing_cache", "ALERT: billing balance check failed for user %d: %v", userID, err)
-		return ErrBillingServiceUnavailable.WithCause(err)
-	}
-	if s.circuitBreaker != nil {
-		s.circuitBreaker.OnSuccess()
-	}
-
-	if s.balanceBelowEligibilityThreshold(balance) {
-		return ErrInsufficientBalance
-	}
-
-	return nil
-}
-
-// checkSubscriptionEligibility 检查订阅模式资格
-func (s *BillingCacheService) checkSubscriptionEligibility(ctx context.Context, userID int64, group *Group, subscription *UserSubscription) error {
-	// 获取订阅缓存数据
-	subData, err := s.GetSubscriptionStatus(ctx, userID, group.ID)
-	if err != nil {
-		if s.circuitBreaker != nil {
-			s.circuitBreaker.OnFailure(err)
-		}
-		logger.LegacyPrintf("service.billing_cache", "ALERT: billing subscription check failed for user %d group %d: %v", userID, group.ID, err)
-		return ErrBillingServiceUnavailable.WithCause(err)
-	}
-	if s.circuitBreaker != nil {
-		s.circuitBreaker.OnSuccess()
-	}
-
-	// 检查订阅状态
-	if subData.Status != SubscriptionStatusActive {
-		return ErrSubscriptionInvalid
-	}
-
-	// 检查是否过期
-	if time.Now().After(subData.ExpiresAt) {
-		return ErrSubscriptionInvalid
-	}
-
-	// 检查限额（使用传入的Group限额配置）
-	if group.HasDailyLimit() && subData.DailyUsage >= *group.DailyLimitUSD {
-		return ErrDailyLimitExceeded
-	}
-
-	if group.HasWeeklyLimit() && subData.WeeklyUsage >= *group.WeeklyLimitUSD {
-		return ErrWeeklyLimitExceeded
-	}
-
-	if group.HasMonthlyLimit() && subData.MonthlyUsage >= *group.MonthlyLimitUSD {
-		return ErrMonthlyLimitExceeded
 	}
 
 	return nil
