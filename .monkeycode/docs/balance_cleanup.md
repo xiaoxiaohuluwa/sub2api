@@ -51,3 +51,41 @@
 - 删除已移除管理员余额服务对应的测试和测试桩
 - 删除基础 handler 测试中已失效的 `/balance` 请求
 - 保留内部账本、余额缓存、账户配额通知及其 Ent 字段，维持 API Key 计费链路
+
+### Batch 9 - 管理端仪表盘清理（已推送 3feaca3b0）
+- 删除快捷操作按钮和 Token 计费展示
+
+### Batch 10 - 运维监控清理（已推送 a5ed92609）
+- 删除系统日志板块
+
+### Batch 11 - 管理端渠道管理板块删除（已推送 ae15ef6bc）
+- 删除管理端渠道管理入口和页面
+- 保留 api/admin/channels 和 components/admin/channel/（GroupsView 复用）
+
+### Batch 12 - 用户侧渠道状态板块删除（已推送 e8d37742d）
+- 删除用户侧渠道状态板块
+- 保留 ProviderIcon 和 features/channel-monitor-v2/ 目录（当时仍被引用）
+
+### Batch 13 - 前端渠道监控系统删除（已推送 892fc9f98）
+- 删除孤儿组件：components/admin/monitor/(11文件)、features/channel-monitor-v2/(12文件)、MonitorQuotaView、ProviderIcon
+- 删除渠道监控API：api/admin/channelMonitor.ts、channelMonitorTemplate.ts、api/channelMonitorV2.ts
+- 清理 api/admin/channels.ts：删除CRUD函数，保留getModelDefaultPricing/ChannelModelPricing
+- 清理 utils/featureFlags.ts：移除channelMonitor FeatureFlag及6个函数
+- 清理 SettingsView.vue：删除channel_monitor_*设置卡片、类型、默认值、加载/保存逻辑
+- 清理 stores/app.ts、types/index.ts、api/admin/settings.ts：移除channel_monitor_*
+- 删除渠道监控i18n和孤儿测试
+- 52 files changed, 3 insertions(+), 8189 deletions(-)
+
+### Batch 14 - 后端渠道监控系统删除（已推送 0fc49c52a）
+- 删除15个service文件（channel_monitor_*.go）
+- 删除6个handler文件（channel_handler.go、channel_monitor_handler.go 等）
+- 删除9个repository/domain/schema文件
+- 删除21个测试文件
+- 删除20个migration文件
+- 删除32个ent生成代码文件+4个目录
+- 清理 wire.go、handler.go、admin.go、user.go 路由
+- 清理 ops_cleanup_service.go、server_timing.go、migrations_runner.go
+- 清理 setting_handler*.go、settings.go、setting_parse.go 等11个settings文件
+- 清理 domain_constants.go 常量
+- 重新生成 ent 和 wire 代码
+- 136 files changed, 207 insertions(+), 41705 deletions(-)
