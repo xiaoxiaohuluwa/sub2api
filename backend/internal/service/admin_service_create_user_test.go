@@ -43,41 +43,9 @@ func TestAdminService_CreateUser_Success(t *testing.T) {
 	require.Equal(t, user, repo.created[0])
 }
 
-func TestAdminService_CreateUser_UsesDefaultBalanceWhenBalanceOmitted(t *testing.T) {
-	repo := &userRepoStub{nextID: 11}
-	cfg := &config.Config{
-		Default: config.DefaultConfig{
-			UserBalance: 0,
-		},
-	}
-	settingService := NewSettingService(&settingRepoStub{values: map[string]string{
-		SettingKeyDefaultBalance: "0.02",
-	}}, cfg)
-	svc := &adminServiceImpl{userRepo: repo, settingService: settingService}
-
-	user, err := svc.CreateUser(context.Background(), &CreateUserInput{
-		Email:    "default-balance@test.com",
-		Password: "strong-pass",
-	})
-
-	require.NoError(t, err)
-	require.NotNil(t, user)
-	require.Equal(t, 0.02, user.Balance)
-	require.Len(t, repo.created, 1)
-	require.Equal(t, 0.02, repo.created[0].Balance)
-}
-
 func TestAdminService_CreateUser_ExplicitZeroBalanceOverridesDefault(t *testing.T) {
 	repo := &userRepoStub{nextID: 12}
-	cfg := &config.Config{
-		Default: config.DefaultConfig{
-			UserBalance: 0,
-		},
-	}
-	settingService := NewSettingService(&settingRepoStub{values: map[string]string{
-		SettingKeyDefaultBalance: "0.02",
-	}}, cfg)
-	svc := &adminServiceImpl{userRepo: repo, settingService: settingService}
+	svc := &adminServiceImpl{userRepo: repo}
 	balance := 0.0
 
 	user, err := svc.CreateUser(context.Background(), &CreateUserInput{

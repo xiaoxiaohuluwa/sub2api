@@ -651,7 +651,6 @@ func (s *AuthService) resolveSignupGrantPlan(ctx context.Context, signupSource s
 		return plan
 	}
 
-	plan.Balance = s.settingService.GetDefaultBalance(ctx)
 	plan.Concurrency = s.settingService.GetDefaultConcurrency(ctx)
 	plan.Subscriptions = s.settingService.GetDefaultSubscriptions(ctx)
 

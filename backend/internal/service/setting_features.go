@@ -308,18 +308,6 @@ func (s *SettingService) GetDefaultConcurrency(ctx context.Context) int {
 	return s.cfg.Default.UserConcurrency
 }
 
-// GetDefaultBalance 获取默认余额
-func (s *SettingService) GetDefaultBalance(ctx context.Context) float64 {
-	value, err := s.settingRepo.GetValue(ctx, SettingKeyDefaultBalance)
-	if err != nil {
-		return s.cfg.Default.UserBalance
-	}
-	if v, err := strconv.ParseFloat(value, 64); err == nil && v >= 0 {
-		return v
-	}
-	return s.cfg.Default.UserBalance
-}
-
 // GetDefaultUserRPMLimit 获取新用户默认 RPM 限制（0 = 不限制）。未配置则返回 0。
 func (s *SettingService) GetDefaultUserRPMLimit(ctx context.Context) int {
 	value, err := s.settingRepo.GetValue(ctx, SettingKeyDefaultUserRPMLimit)
@@ -407,7 +395,6 @@ func (s *SettingService) GetAuthSourceDefaultSettings(ctx context.Context) (*Aut
 
 func (s *SettingService) ResolveAuthSourceGrantSettings(ctx context.Context, signupSource string, firstBind bool) (ProviderDefaultGrantSettings, bool, error) {
 	result := ProviderDefaultGrantSettings{
-		Balance:       s.GetDefaultBalance(ctx),
 		Concurrency:   s.GetDefaultConcurrency(ctx),
 		Subscriptions: s.GetDefaultSubscriptions(ctx),
 	}

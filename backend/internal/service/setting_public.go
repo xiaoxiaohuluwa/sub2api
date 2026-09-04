@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
-	"strconv"
 	"strings"
 
 	"github.com/Wei-Shaw/sub2api/internal/pkg/timezone"
@@ -223,9 +222,6 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		SettingKeyGoogleOAuthEnabled,
 		SettingKeyGoogleOAuthClientID,
 		SettingKeyGoogleOAuthClientSecret,
-		SettingKeyBalanceLowNotifyEnabled,
-		SettingKeyBalanceLowNotifyThreshold,
-		SettingKeyBalanceLowNotifyRechargeURL,
 		SettingKeyAccountQuotaNotifyEnabled,
 		SettingKeyAvailableChannelsEnabled,
 		SettingKeyModelPlazaEnabled,
@@ -286,11 +282,6 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		loginAgreementUpdatedAt = defaultLoginAgreementDate
 	}
 
-	var balanceLowNotifyThreshold float64
-	if v, err := strconv.ParseFloat(settings[SettingKeyBalanceLowNotifyThreshold], 64); err == nil && v >= 0 {
-		balanceLowNotifyThreshold = v
-	}
-
 	return &PublicSettings{
 		RegistrationEnabled:                 settings[SettingKeyRegistrationEnabled] == "true",
 		EmailVerifyEnabled:                  emailVerifyEnabled,
@@ -343,10 +334,7 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		OIDCOAuthProviderName:               oidcProviderName,
 		GitHubOAuthEnabled:                  gitHubEnabled,
 		GoogleOAuthEnabled:                  googleEnabled,
-		BalanceLowNotifyEnabled:             settings[SettingKeyBalanceLowNotifyEnabled] == "true",
 		AccountQuotaNotifyEnabled:           settings[SettingKeyAccountQuotaNotifyEnabled] == "true",
-		BalanceLowNotifyThreshold:           balanceLowNotifyThreshold,
-		BalanceLowNotifyRechargeURL:         settings[SettingKeyBalanceLowNotifyRechargeURL],
 
 		AvailableChannelsEnabled: settings[SettingKeyAvailableChannelsEnabled] == "true",
 
@@ -485,12 +473,9 @@ type PublicSettingsInjectionPayload struct {
 	PaymentEnabled                      bool                     `json:"payment_enabled"`
 	Version                             string                   `json:"version"`
 	// 服务器全局时区（IANA 名称与当前 UTC 偏移），高峰时段等服务端本地时间窗口的展示标注用
-	ServerTimezone              string  `json:"server_timezone"`
-	ServerUTCOffset             string  `json:"server_utc_offset"`
-	BalanceLowNotifyEnabled     bool    `json:"balance_low_notify_enabled"`
-	AccountQuotaNotifyEnabled   bool    `json:"account_quota_notify_enabled"`
-	BalanceLowNotifyThreshold   float64 `json:"balance_low_notify_threshold"`
-	BalanceLowNotifyRechargeURL string  `json:"balance_low_notify_recharge_url"`
+	ServerTimezone            string `json:"server_timezone"`
+	ServerUTCOffset           string `json:"server_utc_offset"`
+	AccountQuotaNotifyEnabled bool   `json:"account_quota_notify_enabled"`
 
 	// Feature flags — MUST match the opt-in/opt-out registry in
 	// frontend/src/utils/featureFlags.ts. Missing a field here is the bug
@@ -566,10 +551,7 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 		Version:                             s.version,
 		ServerTimezone:                      timezone.Name(),
 		ServerUTCOffset:                     timezone.UTCOffset(),
-		BalanceLowNotifyEnabled:             settings.BalanceLowNotifyEnabled,
 		AccountQuotaNotifyEnabled:           settings.AccountQuotaNotifyEnabled,
-		BalanceLowNotifyThreshold:           settings.BalanceLowNotifyThreshold,
-		BalanceLowNotifyRechargeURL:         settings.BalanceLowNotifyRechargeURL,
 
 		AvailableChannelsEnabled:   settings.AvailableChannelsEnabled,
 		ModelPlazaEnabled:          settings.ModelPlazaEnabled,

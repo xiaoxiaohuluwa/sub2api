@@ -120,8 +120,6 @@ func (s *adminServiceImpl) CreateUser(ctx context.Context, input *CreateUserInpu
 	balance := 0.0
 	if input.Balance != nil {
 		balance = *input.Balance
-	} else if s.settingService != nil {
-		balance = s.settingService.GetDefaultBalance(ctx)
 	}
 
 	// 角色可由管理员在创建时指定(admin/user);未提供时默认 user。

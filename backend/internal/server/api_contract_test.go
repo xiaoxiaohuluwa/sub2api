@@ -688,7 +688,6 @@ func TestAPIContracts(t *testing.T) {
 					service.SettingKeyDocURL:       "https://docs.example.com",
 
 					service.SettingKeyDefaultConcurrency:   "5",
-					service.SettingKeyDefaultBalance:       "1.25",
 					service.SettingKeyTableDefaultPageSize: "20",
 					service.SettingKeyTablePageSizeOptions: "[10,20,50,100]",
 

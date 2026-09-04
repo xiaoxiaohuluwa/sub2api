@@ -165,7 +165,6 @@ type SystemSettings struct {
 	CustomEndpoints             []CustomEndpoint `json:"custom_endpoints"`
 
 	DefaultConcurrency           int                          `json:"default_concurrency"`
-	DefaultBalance               float64                      `json:"default_balance"`
 	AffiliateRebateRate          float64                      `json:"affiliate_rebate_rate"`
 	AffiliateRebateFreezeHours   int                          `json:"affiliate_rebate_freeze_hours"`
 	AffiliateRebateDurationDays  int                          `json:"affiliate_rebate_duration_days"`
@@ -293,10 +292,7 @@ type SystemSettings struct {
 	// Use Alipay face-to-face precreate and an app deep link on mobile clients.
 	PaymentAlipayMobilePrecreateDeepLink bool `json:"payment_alipay_mobile_precreate_deep_link"`
 
-	// 余额、订阅到期与账号限额通知
-	BalanceLowNotifyEnabled         bool               `json:"balance_low_notify_enabled"`
-	BalanceLowNotifyThreshold       float64            `json:"balance_low_notify_threshold"`
-	BalanceLowNotifyRechargeURL     string             `json:"balance_low_notify_recharge_url"`
+	// 订阅到期与账号限额通知
 	SubscriptionExpiryNotifyEnabled bool               `json:"subscription_expiry_notify_enabled"`
 	AccountQuotaNotifyEnabled       bool               `json:"account_quota_notify_enabled"`
 	AccountQuotaNotifyEmails        []NotifyEmailEntry `json:"account_quota_notify_emails"`
@@ -398,12 +394,9 @@ type PublicSettings struct {
 	Version                             string                   `json:"version"`
 	// 服务器全局时区（IANA 名称与当前 UTC 偏移，如 "Asia/Shanghai" / "+08:00"）。
 	// 高峰时段等按服务器本地时间判定的窗口，前端展示时据此标注，避免用户按浏览器本地时间误读。
-	ServerTimezone              string  `json:"server_timezone"`
-	ServerUTCOffset             string  `json:"server_utc_offset"`
-	BalanceLowNotifyEnabled     bool    `json:"balance_low_notify_enabled"`
-	AccountQuotaNotifyEnabled   bool    `json:"account_quota_notify_enabled"`
-	BalanceLowNotifyThreshold   float64 `json:"balance_low_notify_threshold"`
-	BalanceLowNotifyRechargeURL string  `json:"balance_low_notify_recharge_url"`
+	ServerTimezone            string `json:"server_timezone"`
+	ServerUTCOffset           string `json:"server_utc_offset"`
+	AccountQuotaNotifyEnabled bool   `json:"account_quota_notify_enabled"`
 
 	AvailableChannelsEnabled bool `json:"available_channels_enabled"`
 

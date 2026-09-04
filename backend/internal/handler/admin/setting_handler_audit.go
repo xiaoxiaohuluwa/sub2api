@@ -347,9 +347,6 @@ func diffSettings(before *service.SystemSettings, after *service.SystemSettings,
 	if before.DefaultConcurrency != after.DefaultConcurrency {
 		changed = append(changed, "default_concurrency")
 	}
-	if before.DefaultBalance != after.DefaultBalance {
-		changed = append(changed, "default_balance")
-	}
 	if before.AffiliateRebateRate != after.AffiliateRebateRate {
 		changed = append(changed, "affiliate_rebate_rate")
 	}
@@ -551,16 +548,7 @@ func diffSettings(before *service.SystemSettings, after *service.SystemSettings,
 	if before.OpenAIAdvancedSchedulerWeightSessionSticky != after.OpenAIAdvancedSchedulerWeightSessionSticky {
 		changed = append(changed, "openai_advanced_scheduler_weight_session_sticky")
 	}
-	// 余额、订阅到期与账号限额通知
-	if before.BalanceLowNotifyEnabled != after.BalanceLowNotifyEnabled {
-		changed = append(changed, "balance_low_notify_enabled")
-	}
-	if before.BalanceLowNotifyThreshold != after.BalanceLowNotifyThreshold {
-		changed = append(changed, "balance_low_notify_threshold")
-	}
-	if before.BalanceLowNotifyRechargeURL != after.BalanceLowNotifyRechargeURL {
-		changed = append(changed, "balance_low_notify_recharge_url")
-	}
+	// 订阅到期与账号限额通知
 	if before.SubscriptionExpiryNotifyEnabled != after.SubscriptionExpiryNotifyEnabled {
 		changed = append(changed, "subscription_expiry_notify_enabled")
 	}

@@ -166,7 +166,6 @@ type SystemSettings struct {
 	CustomEndpoints             string // JSON array of custom endpoints
 
 	DefaultConcurrency           int
-	DefaultBalance               float64
 	RiskControlEnabled           bool
 	CyberSessionBlockEnabled     bool
 	CyberSessionBlockTTLSeconds  int
@@ -281,11 +280,6 @@ type SystemSettings struct {
 	OpenAIAdvancedSchedulerEffectiveWeightPreviousResponse string
 	OpenAIAdvancedSchedulerEffectiveWeightSessionSticky    string
 
-	// 余额不足提醒
-	BalanceLowNotifyEnabled     bool
-	BalanceLowNotifyThreshold   float64
-	BalanceLowNotifyRechargeURL string
-
 	// 订阅到期提醒
 	SubscriptionExpiryNotifyEnabled bool
 
@@ -364,10 +358,7 @@ type PublicSettings struct {
 	GoogleOAuthEnabled       bool
 	Version                  string
 
-	BalanceLowNotifyEnabled     bool
-	AccountQuotaNotifyEnabled   bool
-	BalanceLowNotifyThreshold   float64
-	BalanceLowNotifyRechargeURL string
+	AccountQuotaNotifyEnabled bool
 
 	// Grok model mapping policy (admin settings).
 	GrokDefaultTextModel           string `json:"grok_default_text_model"`
