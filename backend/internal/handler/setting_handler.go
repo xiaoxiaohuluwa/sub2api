@@ -98,12 +98,6 @@ func (h *SettingHandler) GetPublicSettings(c *gin.Context) {
 		AccountQuotaNotifyEnabled:           settings.AccountQuotaNotifyEnabled,
 		BalanceLowNotifyThreshold:           settings.BalanceLowNotifyThreshold,
 
-		ChannelMonitorEnabled:                settings.ChannelMonitorEnabled,
-		ChannelMonitorMode:                   settings.ChannelMonitorMode,
-		ChannelMonitorDefaultIntervalSeconds: settings.ChannelMonitorDefaultIntervalSeconds,
-		ChannelMonitorHideThroughput:         settings.ChannelMonitorHideThroughput,
-		ChannelMonitorShowQuota:              settings.ChannelMonitorShowQuota,
-
 		AvailableChannelsEnabled: settings.AvailableChannelsEnabled,
 
 		ModelPlazaEnabled:       settings.ModelPlazaEnabled,

@@ -328,13 +328,6 @@ type UpdateSettingsRequest struct {
 	// Use Alipay face-to-face precreate and an app deep link on mobile clients.
 	PaymentAlipayMobilePrecreateDeepLink *bool `json:"payment_alipay_mobile_precreate_deep_link"`
 
-	// Channel Monitor feature switch
-	ChannelMonitorEnabled                *bool   `json:"channel_monitor_enabled"`
-	ChannelMonitorMode                   *string `json:"channel_monitor_mode"`
-	ChannelMonitorDefaultIntervalSeconds *int    `json:"channel_monitor_default_interval_seconds"`
-	ChannelMonitorHideThroughput         *bool   `json:"channel_monitor_hide_throughput"`
-	ChannelMonitorShowQuota              *bool   `json:"channel_monitor_show_quota"`
-
 	// Grok model mapping policy
 	GrokDefaultTextModel           *string `json:"grok_default_text_model"`
 	GrokCrossClientModelMapEnabled *bool   `json:"grok_cross_client_model_map_enabled"`
@@ -1876,36 +1869,6 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 			}
 			return previousSettings.AccountQuotaNotifyEmails
 		}(),
-		ChannelMonitorEnabled: func() bool {
-			if req.ChannelMonitorEnabled != nil {
-				return *req.ChannelMonitorEnabled
-			}
-			return previousSettings.ChannelMonitorEnabled
-		}(),
-		ChannelMonitorMode: func() string {
-			if req.ChannelMonitorMode != nil {
-				return *req.ChannelMonitorMode
-			}
-			return previousSettings.ChannelMonitorMode
-		}(),
-		ChannelMonitorDefaultIntervalSeconds: func() int {
-			if req.ChannelMonitorDefaultIntervalSeconds != nil {
-				return *req.ChannelMonitorDefaultIntervalSeconds
-			}
-			return previousSettings.ChannelMonitorDefaultIntervalSeconds
-		}(),
-		ChannelMonitorHideThroughput: func() bool {
-			if req.ChannelMonitorHideThroughput != nil {
-				return *req.ChannelMonitorHideThroughput
-			}
-			return previousSettings.ChannelMonitorHideThroughput
-		}(),
-		ChannelMonitorShowQuota: func() bool {
-			if req.ChannelMonitorShowQuota != nil {
-				return *req.ChannelMonitorShowQuota
-			}
-			return previousSettings.ChannelMonitorShowQuota
-		}(),
 		GrokDefaultTextModel: func() string {
 			if req.GrokDefaultTextModel != nil {
 				return *req.GrokDefaultTextModel
@@ -2360,12 +2323,6 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		PaymentCancelRateLimitMode:                             updatedPaymentCfg.CancelRateLimitMode,
 		PaymentAlipayForceQRCode:                               updatedPaymentCfg.AlipayForceQRCode,
 		PaymentAlipayMobilePrecreateDeepLink:                   updatedPaymentCfg.AlipayMobilePrecreateDeepLink,
-
-		ChannelMonitorEnabled:                updatedSettings.ChannelMonitorEnabled,
-		ChannelMonitorMode:                   updatedSettings.ChannelMonitorMode,
-		ChannelMonitorDefaultIntervalSeconds: updatedSettings.ChannelMonitorDefaultIntervalSeconds,
-		ChannelMonitorHideThroughput:         updatedSettings.ChannelMonitorHideThroughput,
-		ChannelMonitorShowQuota:              updatedSettings.ChannelMonitorShowQuota,
 
 		GrokDefaultTextModel:           updatedSettings.GrokDefaultTextModel,
 		GrokCrossClientModelMapEnabled: updatedSettings.GrokCrossClientModelMapEnabled,
