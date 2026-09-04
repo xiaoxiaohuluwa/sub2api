@@ -87,47 +87,17 @@
 
         <div class="mt-4 space-y-3">
           <div
-            v-for="(cond, condIndex) in (group.all_of || [])"
+            v-for="(_, condIndex) in (group.all_of || [])"
             :key="condIndex"
             class="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-dark-700 dark:bg-dark-900/30"
           >
             <div class="flex flex-col gap-3 md:flex-row md:items-end">
-              <div class="w-full md:w-52">
-                <label class="input-label">{{ t('admin.announcements.form.conditionType') }}</label>
-                <Select
-                  :model-value="cond.type"
-                  :options="conditionTypeOptions"
-                  @update:model-value="(v) => setConditionType(groupIndex, condIndex, v as any)"
-                />
-              </div>
-
-              <div v-if="cond.type === 'subscription'" class="flex-1">
+              <div class="flex-1">
                 <label class="input-label">{{ t('admin.announcements.form.selectPackages') }}</label>
                 <GroupSelector
                   v-model="subscriptionSelections[groupIndex][condIndex]"
                   :groups="groups"
                 />
-              </div>
-
-              <div v-else class="flex flex-1 flex-col gap-3 sm:flex-row">
-                <div class="w-full sm:w-44">
-                  <label class="input-label">{{ t('admin.announcements.form.operator') }}</label>
-                  <Select
-                    :model-value="cond.operator"
-                    :options="balanceOperatorOptions"
-                    @update:model-value="(v) => setOperator(groupIndex, condIndex, v as any)"
-                  />
-                </div>
-                <div class="w-full sm:flex-1">
-                  <label class="input-label">{{ t('admin.announcements.form.balanceValue') }}</label>
-                  <input
-                    :value="String(cond.value ?? '')"
-                    type="number"
-                    step="any"
-                    class="input"
-                    @input="(e) => setBalanceValue(groupIndex, condIndex, (e.target as HTMLInputElement).value)"
-                  />
-                </div>
               </div>
 
               <div class="flex justify-end">
@@ -176,7 +146,6 @@ import type {
   AnnouncementOperator
 } from '@/types'
 
-import Select from '@/components/common/Select.vue'
 import GroupSelector from '@/components/common/GroupSelector.vue'
 import Icon from '@/components/icons/Icon.vue'
 
@@ -196,19 +165,6 @@ const anyOf = computed(() => props.modelValue?.any_of ?? [])
 type Mode = 'all' | 'custom'
 const mode = computed<Mode>(() => (anyOf.value.length === 0 ? 'all' : 'custom'))
 
-const conditionTypeOptions = computed(() => [
-  { value: 'subscription', label: t('admin.announcements.form.conditionSubscription') },
-  { value: 'balance', label: t('admin.announcements.form.conditionBalance') }
-])
-
-const balanceOperatorOptions = computed(() => [
-  { value: 'gt', label: t('admin.announcements.operators.gt') },
-  { value: 'gte', label: t('admin.announcements.operators.gte') },
-  { value: 'lt', label: t('admin.announcements.operators.lt') },
-  { value: 'lte', label: t('admin.announcements.operators.lte') },
-  { value: 'eq', label: t('admin.announcements.operators.eq') }
-])
-
 function setMode(next: Mode) {
   if (next === 'all') {
     emit('update:modelValue', { any_of: [] })
@@ -224,14 +180,6 @@ function defaultSubscriptionCondition(): AnnouncementCondition {
     type: 'subscription' as AnnouncementConditionType,
     operator: 'in' as AnnouncementOperator,
     group_ids: []
-  }
-}
-
-function defaultBalanceCondition(): AnnouncementCondition {
-  return {
-    type: 'balance' as AnnouncementConditionType,
-    operator: 'gte' as AnnouncementOperator,
-    value: 0
   }
 }
 
@@ -273,44 +221,6 @@ function removeAndCondition(groupIndex: number, condIndex: number) {
     const group = draft.any_of[groupIndex]
     if (!group?.all_of) return
     group.all_of.splice(condIndex, 1)
-  })
-}
-
-function setConditionType(groupIndex: number, condIndex: number, nextType: AnnouncementConditionType) {
-  updateTargeting((draft) => {
-    const group = draft.any_of[groupIndex]
-    if (!group?.all_of) return
-
-    if (nextType === 'subscription') {
-      group.all_of[condIndex] = defaultSubscriptionCondition()
-    } else {
-      group.all_of[condIndex] = defaultBalanceCondition()
-    }
-  })
-}
-
-function setOperator(groupIndex: number, condIndex: number, op: AnnouncementOperator) {
-  updateTargeting((draft) => {
-    const group = draft.any_of[groupIndex]
-    if (!group?.all_of) return
-
-    const cond = group.all_of[condIndex]
-    if (!cond) return
-
-    cond.operator = op
-  })
-}
-
-function setBalanceValue(groupIndex: number, condIndex: number, raw: string) {
-  const n = raw === '' ? 0 : Number(raw)
-  updateTargeting((draft) => {
-    const group = draft.any_of[groupIndex]
-    if (!group?.all_of) return
-
-    const cond = group.all_of[condIndex]
-    if (!cond) return
-
-    cond.value = Number.isFinite(n) ? n : 0
   })
 }
 

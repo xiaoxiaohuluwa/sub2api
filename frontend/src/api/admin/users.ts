@@ -133,7 +133,6 @@ export async function create(userData: {
   username?: string
   notes?: string
   role?: 'admin' | 'user'
-  balance?: number
   concurrency?: number
   rpm_limit?: number
   allowed_groups?: number[] | null

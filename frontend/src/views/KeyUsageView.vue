@@ -212,24 +212,17 @@
                     </defs>
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center">
-                    <template v-if="ring.isBalance">
-                      <span class="text-2xl font-bold tabular-nums" :style="{ color: RING_GRADIENTS[i % 4].from }">
-                        {{ ring.amount }}
-                      </span>
-                    </template>
-                    <template v-else>
-                      <span class="text-3xl font-bold tabular-nums text-gray-900 dark:text-white">
-                        {{ displayPcts[i] ?? 0 }}%
-                      </span>
-                      <span class="text-xs text-gray-500 dark:text-dark-400 mt-0.5">{{ t('keyUsage.used') }}</span>
-                      <span
-                        class="text-sm font-semibold mt-1 tabular-nums"
-                        :style="{ color: RING_GRADIENTS[i % 4].from }"
-                      >{{ ring.amount }}</span>
-                      <p v-if="ring.resetAt && formatResetTime(ring.resetAt)" class="text-xs text-gray-400 dark:text-gray-500 mt-0.5 tabular-nums">
-                        ⟳ {{ formatResetTime(ring.resetAt) }}
-                      </p>
-                    </template>
+                    <span class="text-3xl font-bold tabular-nums text-gray-900 dark:text-white">
+                      {{ displayPcts[i] ?? 0 }}%
+                    </span>
+                    <span class="text-xs text-gray-500 dark:text-dark-400 mt-0.5">{{ t('keyUsage.used') }}</span>
+                    <span
+                      class="text-sm font-semibold mt-1 tabular-nums"
+                      :style="{ color: RING_GRADIENTS[i % 4].from }"
+                    >{{ ring.amount }}</span>
+                    <p v-if="ring.resetAt && formatResetTime(ring.resetAt)" class="text-xs text-gray-400 dark:text-gray-500 mt-0.5 tabular-nums">
+                      ⟳ {{ formatResetTime(ring.resetAt) }}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -542,14 +535,12 @@ interface RingItem {
   title: string
   pct: number
   amount: string
-  isBalance?: boolean
   iconType: 'clock' | 'calendar' | 'dollar'
   resetAt?: string | null
 }
 
 function getRingOffset(ring: RingItem): number {
   if (!ringAnimated.value) return CIRCUMFERENCE
-  if (ring.isBalance) return 0
   return CIRCUMFERENCE - (Math.min(ring.pct, 100) / 100) * CIRCUMFERENCE
 }
 
@@ -565,7 +556,7 @@ function triggerRingAnimation(items: RingItem[]) {
         // Animate percentage numbers
         const duration = 1000
         const startTime = performance.now()
-        const targets = items.map(item => item.isBalance ? 0 : item.pct)
+        const targets = items.map(item => item.pct)
 
         function tick() {
           const elapsed = performance.now() - startTime
@@ -601,7 +592,7 @@ const statusInfo = computed(() => {
   }
 
   return {
-    label: data.planName || t('keyUsage.walletBalance'),
+    label: data.planName || '-',
     statusText: 'Active',
     isActive: true,
   }
@@ -646,9 +637,6 @@ const ringItems = computed<RingItem[]>(() => {
           items.push({ title: l.label, pct, amount: `${usd(l.usage)} / ${usd(l.limit)}`, iconType: 'calendar' })
         }
       }
-    }
-    if (!data.subscription && data.balance != null) {
-      items.push({ title: t('keyUsage.walletBalance'), pct: 0, amount: usd(data.balance), isBalance: true, iconType: 'dollar' })
     }
   }
 
@@ -728,7 +716,7 @@ const detailRows = computed<DetailRow[]>(() => {
   } else {
     rows.push({
       iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500', iconSvg: ICON_CHECK,
-      label: t('keyUsage.subscriptionType'), value: data.planName || t('keyUsage.walletBalance'), valueClass: '',
+      label: t('keyUsage.subscriptionType'), value: data.planName || '-', valueClass: '',
     })
 
     if (data.subscription) {
