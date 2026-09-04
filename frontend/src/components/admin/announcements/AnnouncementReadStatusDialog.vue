@@ -34,10 +34,6 @@
           <span class="font-medium text-gray-900 dark:text-white">{{ value }}</span>
         </template>
 
-        <template #cell-balance="{ value }">
-          <span class="font-medium text-gray-900 dark:text-white">${{ Number(value ?? 0).toFixed(2) }}</span>
-        </template>
-
         <template #cell-eligible="{ value }">
           <span :class="['badge', value ? 'badge-success' : 'badge-gray']">
             {{ value ? t('admin.announcements.eligible') : t('common.no') }}
@@ -116,7 +112,6 @@ const items = ref<AnnouncementUserReadStatus[]>([])
 const columns = computed<Column[]>(() => [
   { key: 'email', label: t('common.email'), sortable: true },
   { key: 'username', label: t('admin.users.columns.username'), sortable: true },
-  { key: 'balance', label: t('common.balance'), sortable: true },
   { key: 'eligible', label: t('admin.announcements.eligible') },
   { key: 'read_at', label: t('admin.announcements.readAt') }
 ])

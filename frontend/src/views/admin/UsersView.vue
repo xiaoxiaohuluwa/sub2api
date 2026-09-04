@@ -828,7 +828,7 @@ const DEFAULT_HIDDEN_COLUMNS = [
   'notes', 'groups', 'subscriptions', 'usage', 'concurrency',
   'usage_anthropic', 'usage_openai', 'usage_gemini', 'usage_antigravity'
 ]
-const REMOVED_COLUMNS = new Set(['last_login_at', 'balance_platform_quota'])
+const REMOVED_COLUMNS = new Set(['last_login_at'])
 // 强制可见列：加载时会被强制移出 hiddenColumns，并在列设置 UI 上 disabled。
 // 当前没有列需要强制可见 —— last_active_at 已改为可被用户隐藏。
 const FORCED_VISIBLE_COLUMNS = new Set<string>()
