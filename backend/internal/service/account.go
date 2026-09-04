@@ -2605,6 +2605,17 @@ func (a *Account) GetQuotaResetTimezone() string {
 	return "UTC"
 }
 
+// --- Quota Notification Constants ---
+
+const (
+	thresholdTypeFixed      = "fixed"
+	thresholdTypePercentage = "percentage"
+
+	quotaDimDaily  = "daily"
+	quotaDimWeekly = "weekly"
+	quotaDimTotal  = "total"
+)
+
 // --- Quota Notification Getters ---
 
 // QuotaNotifyConfig returns the notify configuration for a given quota dimension.

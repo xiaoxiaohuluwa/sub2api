@@ -19,6 +19,11 @@ type smtpMessage struct {
 	data         []byte
 }
 
+// sanitizeEmailHeader removes CR/LF characters to prevent SMTP header injection.
+func sanitizeEmailHeader(s string) string {
+	return strings.NewReplacer("\r", "", "\n", "").Replace(s)
+}
+
 func buildSMTPMessage(config *SMTPConfig, to, subject, body string) (smtpMessage, error) {
 	if config == nil {
 		return smtpMessage{}, errors.New("missing SMTP configuration")
