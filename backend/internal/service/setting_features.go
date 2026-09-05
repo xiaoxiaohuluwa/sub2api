@@ -51,7 +51,6 @@ func (s *SettingService) GetRegistrationEmailSuffixWhitelist(ctx context.Context
 	return ParseRegistrationEmailSuffixWhitelist(value)
 }
 
-
 // GetCustomMenuItemsRaw returns the raw JSON string of custom_menu_items setting.
 func (s *SettingService) GetCustomMenuItemsRaw(ctx context.Context) string {
 	value, err := s.settingRepo.GetValue(ctx, SettingKeyCustomMenuItems)
@@ -220,50 +219,34 @@ func (s *SettingService) GetDefaultUserRPMLimit(ctx context.Context) int {
 	return 0
 }
 
-// GetDefaultSubscriptions 获取新用户默认订阅配置列表。
-func (s *SettingService) GetDefaultSubscriptions(ctx context.Context) []DefaultSubscriptionSetting {
-	value, err := s.settingRepo.GetValue(ctx, SettingKeyDefaultSubscriptions)
-	if err != nil {
-		return nil
-	}
-	return parseDefaultSubscriptions(value)
-}
-
 func (s *SettingService) GetAuthSourceDefaultSettings(ctx context.Context) (*AuthSourceDefaultSettings, error) {
 	keys := []string{
 		SettingKeyAuthSourceDefaultEmailBalance,
 		SettingKeyAuthSourceDefaultEmailConcurrency,
-		SettingKeyAuthSourceDefaultEmailSubscriptions,
 		SettingKeyAuthSourceDefaultEmailGrantOnSignup,
 		SettingKeyAuthSourceDefaultEmailGrantOnFirstBind,
 		SettingKeyAuthSourceDefaultLinuxDoBalance,
 		SettingKeyAuthSourceDefaultLinuxDoConcurrency,
-		SettingKeyAuthSourceDefaultLinuxDoSubscriptions,
 		SettingKeyAuthSourceDefaultLinuxDoGrantOnSignup,
 		SettingKeyAuthSourceDefaultLinuxDoGrantOnFirstBind,
 		SettingKeyAuthSourceDefaultOIDCBalance,
 		SettingKeyAuthSourceDefaultOIDCConcurrency,
-		SettingKeyAuthSourceDefaultOIDCSubscriptions,
 		SettingKeyAuthSourceDefaultOIDCGrantOnSignup,
 		SettingKeyAuthSourceDefaultOIDCGrantOnFirstBind,
 		SettingKeyAuthSourceDefaultWeChatBalance,
 		SettingKeyAuthSourceDefaultWeChatConcurrency,
-		SettingKeyAuthSourceDefaultWeChatSubscriptions,
 		SettingKeyAuthSourceDefaultWeChatGrantOnSignup,
 		SettingKeyAuthSourceDefaultWeChatGrantOnFirstBind,
 		SettingKeyAuthSourceDefaultGitHubBalance,
 		SettingKeyAuthSourceDefaultGitHubConcurrency,
-		SettingKeyAuthSourceDefaultGitHubSubscriptions,
 		SettingKeyAuthSourceDefaultGitHubGrantOnSignup,
 		SettingKeyAuthSourceDefaultGitHubGrantOnFirstBind,
 		SettingKeyAuthSourceDefaultGoogleBalance,
 		SettingKeyAuthSourceDefaultGoogleConcurrency,
-		SettingKeyAuthSourceDefaultGoogleSubscriptions,
 		SettingKeyAuthSourceDefaultGoogleGrantOnSignup,
 		SettingKeyAuthSourceDefaultGoogleGrantOnFirstBind,
 		SettingKeyAuthSourceDefaultDingTalkBalance,
 		SettingKeyAuthSourceDefaultDingTalkConcurrency,
-		SettingKeyAuthSourceDefaultDingTalkSubscriptions,
 		SettingKeyAuthSourceDefaultDingTalkGrantOnSignup,
 		SettingKeyAuthSourceDefaultDingTalkGrantOnFirstBind,
 		SettingKeyAuthSourcePlatformQuotas("email"),
@@ -295,8 +278,7 @@ func (s *SettingService) GetAuthSourceDefaultSettings(ctx context.Context) (*Aut
 
 func (s *SettingService) ResolveAuthSourceGrantSettings(ctx context.Context, signupSource string, firstBind bool) (ProviderDefaultGrantSettings, bool, error) {
 	result := ProviderDefaultGrantSettings{
-		Concurrency:   s.GetDefaultConcurrency(ctx),
-		Subscriptions: s.GetDefaultSubscriptions(ctx),
+		Concurrency: s.GetDefaultConcurrency(ctx),
 	}
 
 	defaults, err := s.GetAuthSourceDefaultSettings(ctx)

@@ -114,14 +114,6 @@ func (h *SettingHandler) GetSettings(c *gin.Context) {
 
 	// Check if ops monitoring is enabled (respects config.ops.enabled)
 	opsEnabled := h.opsService != nil && h.opsService.IsMonitoringEnabled(c.Request.Context())
-	defaultSubscriptions := make([]dto.DefaultSubscriptionSetting, 0, len(settings.DefaultSubscriptions))
-	for _, sub := range settings.DefaultSubscriptions {
-		defaultSubscriptions = append(defaultSubscriptions, dto.DefaultSubscriptionSetting{
-			GroupID:      sub.GroupID,
-			ValidityDays: sub.ValidityDays,
-		})
-	}
-
 	// Load payment config
 	var paymentCfg *service.PaymentConfig
 	if h.paymentConfigService != nil {
@@ -264,7 +256,6 @@ func (h *SettingHandler) GetSettings(c *gin.Context) {
 		CyberSessionBlockEnabled:                               settings.CyberSessionBlockEnabled,
 		CyberSessionBlockTTLSeconds:                            settings.CyberSessionBlockTTLSeconds,
 		DefaultUserRPMLimit:                                    settings.DefaultUserRPMLimit,
-		DefaultSubscriptions:                                   defaultSubscriptions,
 		EnableModelFallback:                                    settings.EnableModelFallback,
 		FallbackModelAnthropic:                                 settings.FallbackModelAnthropic,
 		FallbackModelOpenAI:                                    settings.FallbackModelOpenAI,
@@ -467,37 +458,30 @@ func systemSettingsResponseData(settings dto.SystemSettings, authSourceDefaults 
 
 	data["auth_source_default_email_balance"] = authSourceDefaults.Email.Balance
 	data["auth_source_default_email_concurrency"] = authSourceDefaults.Email.Concurrency
-	data["auth_source_default_email_subscriptions"] = authSourceDefaults.Email.Subscriptions
 	data["auth_source_default_email_grant_on_signup"] = authSourceDefaults.Email.GrantOnSignup
 	data["auth_source_default_email_grant_on_first_bind"] = authSourceDefaults.Email.GrantOnFirstBind
 	data["auth_source_default_linuxdo_balance"] = authSourceDefaults.LinuxDo.Balance
 	data["auth_source_default_linuxdo_concurrency"] = authSourceDefaults.LinuxDo.Concurrency
-	data["auth_source_default_linuxdo_subscriptions"] = authSourceDefaults.LinuxDo.Subscriptions
 	data["auth_source_default_linuxdo_grant_on_signup"] = authSourceDefaults.LinuxDo.GrantOnSignup
 	data["auth_source_default_linuxdo_grant_on_first_bind"] = authSourceDefaults.LinuxDo.GrantOnFirstBind
 	data["auth_source_default_dingtalk_balance"] = authSourceDefaults.DingTalk.Balance
 	data["auth_source_default_dingtalk_concurrency"] = authSourceDefaults.DingTalk.Concurrency
-	data["auth_source_default_dingtalk_subscriptions"] = authSourceDefaults.DingTalk.Subscriptions
 	data["auth_source_default_dingtalk_grant_on_signup"] = authSourceDefaults.DingTalk.GrantOnSignup
 	data["auth_source_default_dingtalk_grant_on_first_bind"] = authSourceDefaults.DingTalk.GrantOnFirstBind
 	data["auth_source_default_oidc_balance"] = authSourceDefaults.OIDC.Balance
 	data["auth_source_default_oidc_concurrency"] = authSourceDefaults.OIDC.Concurrency
-	data["auth_source_default_oidc_subscriptions"] = authSourceDefaults.OIDC.Subscriptions
 	data["auth_source_default_oidc_grant_on_signup"] = authSourceDefaults.OIDC.GrantOnSignup
 	data["auth_source_default_oidc_grant_on_first_bind"] = authSourceDefaults.OIDC.GrantOnFirstBind
 	data["auth_source_default_wechat_balance"] = authSourceDefaults.WeChat.Balance
 	data["auth_source_default_wechat_concurrency"] = authSourceDefaults.WeChat.Concurrency
-	data["auth_source_default_wechat_subscriptions"] = authSourceDefaults.WeChat.Subscriptions
 	data["auth_source_default_wechat_grant_on_signup"] = authSourceDefaults.WeChat.GrantOnSignup
 	data["auth_source_default_wechat_grant_on_first_bind"] = authSourceDefaults.WeChat.GrantOnFirstBind
 	data["auth_source_default_github_balance"] = authSourceDefaults.GitHub.Balance
 	data["auth_source_default_github_concurrency"] = authSourceDefaults.GitHub.Concurrency
-	data["auth_source_default_github_subscriptions"] = authSourceDefaults.GitHub.Subscriptions
 	data["auth_source_default_github_grant_on_signup"] = authSourceDefaults.GitHub.GrantOnSignup
 	data["auth_source_default_github_grant_on_first_bind"] = authSourceDefaults.GitHub.GrantOnFirstBind
 	data["auth_source_default_google_balance"] = authSourceDefaults.Google.Balance
 	data["auth_source_default_google_concurrency"] = authSourceDefaults.Google.Concurrency
-	data["auth_source_default_google_subscriptions"] = authSourceDefaults.Google.Subscriptions
 	data["auth_source_default_google_grant_on_signup"] = authSourceDefaults.Google.GrantOnSignup
 	data["auth_source_default_google_grant_on_first_bind"] = authSourceDefaults.Google.GrantOnFirstBind
 	data["auth_source_default_email_platform_quotas"] = authSourceDefaults.Email.PlatformQuotas

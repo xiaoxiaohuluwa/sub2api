@@ -124,40 +124,32 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 		SettingKeyOIDCConnectUserInfoUsernamePath:           "",
 		SettingKeyDefaultConcurrency:                        strconv.Itoa(s.cfg.Default.UserConcurrency),
 		SettingKeyDefaultUserRPMLimit:                       "0",
-		SettingKeyDefaultSubscriptions:                      "[]",
 		SettingKeyAuthSourceDefaultEmailBalance:             "0",
 		SettingKeyAuthSourceDefaultEmailConcurrency:         "5",
-		SettingKeyAuthSourceDefaultEmailSubscriptions:       "[]",
 		SettingKeyAuthSourceDefaultEmailGrantOnSignup:       "false",
 		SettingKeyAuthSourceDefaultEmailGrantOnFirstBind:    "false",
 		SettingKeyAuthSourceDefaultLinuxDoBalance:           "0",
 		SettingKeyAuthSourceDefaultLinuxDoConcurrency:       "5",
-		SettingKeyAuthSourceDefaultLinuxDoSubscriptions:     "[]",
 		SettingKeyAuthSourceDefaultLinuxDoGrantOnSignup:     "false",
 		SettingKeyAuthSourceDefaultLinuxDoGrantOnFirstBind:  "false",
 		SettingKeyAuthSourceDefaultOIDCBalance:              "0",
 		SettingKeyAuthSourceDefaultOIDCConcurrency:          "5",
-		SettingKeyAuthSourceDefaultOIDCSubscriptions:        "[]",
 		SettingKeyAuthSourceDefaultOIDCGrantOnSignup:        "false",
 		SettingKeyAuthSourceDefaultOIDCGrantOnFirstBind:     "false",
 		SettingKeyAuthSourceDefaultWeChatBalance:            "0",
 		SettingKeyAuthSourceDefaultWeChatConcurrency:        "5",
-		SettingKeyAuthSourceDefaultWeChatSubscriptions:      "[]",
 		SettingKeyAuthSourceDefaultWeChatGrantOnSignup:      "false",
 		SettingKeyAuthSourceDefaultWeChatGrantOnFirstBind:   "false",
 		SettingKeyAuthSourceDefaultGitHubBalance:            "0",
 		SettingKeyAuthSourceDefaultGitHubConcurrency:        "5",
-		SettingKeyAuthSourceDefaultGitHubSubscriptions:      "[]",
 		SettingKeyAuthSourceDefaultGitHubGrantOnSignup:      "false",
 		SettingKeyAuthSourceDefaultGitHubGrantOnFirstBind:   "false",
 		SettingKeyAuthSourceDefaultGoogleBalance:            "0",
 		SettingKeyAuthSourceDefaultGoogleConcurrency:        "5",
-		SettingKeyAuthSourceDefaultGoogleSubscriptions:      "[]",
 		SettingKeyAuthSourceDefaultGoogleGrantOnSignup:      "false",
 		SettingKeyAuthSourceDefaultGoogleGrantOnFirstBind:   "false",
 		SettingKeyAuthSourceDefaultDingTalkBalance:          "0",
 		SettingKeyAuthSourceDefaultDingTalkConcurrency:      "5",
-		SettingKeyAuthSourceDefaultDingTalkSubscriptions:    "[]",
 		SettingKeyAuthSourceDefaultDingTalkGrantOnSignup:    "false",
 		SettingKeyAuthSourceDefaultDingTalkGrantOnFirstBind: "false",
 		SettingKeyForceEmailOnThirdPartySignup:              "false",
@@ -367,8 +359,6 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 	if rpm, err := strconv.Atoi(settings[SettingKeyDefaultUserRPMLimit]); err == nil && rpm >= 0 {
 		result.DefaultUserRPMLimit = rpm
 	}
-
-	result.DefaultSubscriptions = parseDefaultSubscriptions(settings[SettingKeyDefaultSubscriptions])
 
 	// 敏感信息直接返回，方便测试连接时使用
 	result.SMTPPassword = settings[SettingKeySMTPPassword]
@@ -1078,36 +1068,10 @@ func normalizeOptionalNonNegativeFloatString(raw string) (string, error) {
 	return strconv.FormatFloat(value, 'f', -1, 64), nil
 }
 
-func parseDefaultSubscriptions(raw string) []DefaultSubscriptionSetting {
-	raw = strings.TrimSpace(raw)
-	if raw == "" {
-		return nil
-	}
-
-	var items []DefaultSubscriptionSetting
-	if err := json.Unmarshal([]byte(raw), &items); err != nil {
-		return nil
-	}
-
-	normalized := make([]DefaultSubscriptionSetting, 0, len(items))
-	for _, item := range items {
-		if item.GroupID <= 0 || item.ValidityDays <= 0 {
-			continue
-		}
-		if item.ValidityDays > MaxValidityDays {
-			item.ValidityDays = MaxValidityDays
-		}
-		normalized = append(normalized, item)
-	}
-
-	return normalized
-}
-
 func parseProviderDefaultGrantSettings(settings map[string]string, keys authSourceDefaultKeySet) ProviderDefaultGrantSettings {
 	result := ProviderDefaultGrantSettings{
 		Balance:          defaultAuthSourceBalance,
 		Concurrency:      defaultAuthSourceConcurrency,
-		Subscriptions:    []DefaultSubscriptionSetting{},
 		GrantOnSignup:    false,
 		GrantOnFirstBind: false,
 	}
@@ -1117,9 +1081,6 @@ func parseProviderDefaultGrantSettings(settings map[string]string, keys authSour
 	}
 	if v, err := strconv.Atoi(strings.TrimSpace(settings[keys.concurrency])); err == nil {
 		result.Concurrency = v
-	}
-	if items := parseDefaultSubscriptions(settings[keys.subscriptions]); items != nil {
-		result.Subscriptions = items
 	}
 	if raw, ok := settings[keys.grantOnSignup]; ok {
 		result.GrantOnSignup = raw == "true"
@@ -1144,15 +1105,6 @@ func writeProviderDefaultGrantUpdates(updates map[string]string, keys authSource
 	updates[keys.balance] = strconv.FormatFloat(settings.Balance, 'f', 8, 64)
 	updates[keys.concurrency] = strconv.Itoa(settings.Concurrency)
 
-	subscriptions := settings.Subscriptions
-	if subscriptions == nil {
-		subscriptions = []DefaultSubscriptionSetting{}
-	}
-	raw, err := json.Marshal(subscriptions)
-	if err != nil {
-		raw = []byte("[]")
-	}
-	updates[keys.subscriptions] = string(raw)
 	updates[keys.grantOnSignup] = strconv.FormatBool(settings.GrantOnSignup)
 	updates[keys.grantOnFirstBind] = strconv.FormatBool(settings.GrantOnFirstBind)
 
@@ -1172,7 +1124,6 @@ func mergeProviderDefaultGrantSettings(globalDefaults ProviderDefaultGrantSettin
 	result := ProviderDefaultGrantSettings{
 		Balance:          globalDefaults.Balance,
 		Concurrency:      globalDefaults.Concurrency,
-		Subscriptions:    append([]DefaultSubscriptionSetting(nil), globalDefaults.Subscriptions...),
 		GrantOnSignup:    providerDefaults.GrantOnSignup,
 		GrantOnFirstBind: providerDefaults.GrantOnFirstBind,
 	}
@@ -1187,10 +1138,6 @@ func mergeProviderDefaultGrantSettings(globalDefaults ProviderDefaultGrantSettin
 	if providerDefaults.Concurrency > 0 {
 		result.Concurrency = providerDefaults.Concurrency
 	}
-	if len(providerDefaults.Subscriptions) > 0 {
-		result.Subscriptions = append([]DefaultSubscriptionSetting(nil), providerDefaults.Subscriptions...)
-	}
-
 	return result
 }
 

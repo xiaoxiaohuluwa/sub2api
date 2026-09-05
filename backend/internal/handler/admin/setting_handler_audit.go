@@ -3,7 +3,6 @@ package admin
 import (
 	"log/slog"
 
-	"github.com/Wei-Shaw/sub2api/internal/handler/dto"
 	"github.com/Wei-Shaw/sub2api/internal/server/middleware"
 	"github.com/Wei-Shaw/sub2api/internal/service"
 
@@ -341,9 +340,6 @@ func diffSettings(before *service.SystemSettings, after *service.SystemSettings,
 	if before.DefaultConcurrency != after.DefaultConcurrency {
 		changed = append(changed, "default_concurrency")
 	}
-	if !equalDefaultSubscriptions(before.DefaultSubscriptions, after.DefaultSubscriptions) {
-		changed = append(changed, "default_subscriptions")
-	}
 	if before.EnableModelFallback != after.EnableModelFallback {
 		changed = append(changed, "enable_model_fallback")
 	}
@@ -599,9 +595,6 @@ func appendAuthSourceDefaultChanges(changed []string, before *service.AuthSource
 		if field.before.Concurrency != field.after.Concurrency {
 			changed = append(changed, "auth_source_default_"+field.name+"_concurrency")
 		}
-		if !equalDefaultSubscriptions(field.before.Subscriptions, field.after.Subscriptions) {
-			changed = append(changed, "auth_source_default_"+field.name+"_subscriptions")
-		}
 		if field.before.GrantOnSignup != field.after.GrantOnSignup {
 			changed = append(changed, "auth_source_default_"+field.name+"_grant_on_signup")
 		}
@@ -617,31 +610,6 @@ func appendAuthSourceDefaultChanges(changed []string, before *service.AuthSource
 		changed = append(changed, "force_email_on_third_party_signup")
 	}
 	return changed
-}
-
-func normalizeDefaultSubscriptions(input []dto.DefaultSubscriptionSetting) []dto.DefaultSubscriptionSetting {
-	if len(input) == 0 {
-		return nil
-	}
-	normalized := make([]dto.DefaultSubscriptionSetting, 0, len(input))
-	for _, item := range input {
-		if item.GroupID <= 0 || item.ValidityDays <= 0 {
-			continue
-		}
-		if item.ValidityDays > service.MaxValidityDays {
-			item.ValidityDays = service.MaxValidityDays
-		}
-		normalized = append(normalized, item)
-	}
-	return normalized
-}
-
-func normalizeOptionalDefaultSubscriptions(input *[]dto.DefaultSubscriptionSetting) *[]dto.DefaultSubscriptionSetting {
-	if input == nil {
-		return nil
-	}
-	normalized := normalizeDefaultSubscriptions(*input)
-	return &normalized
 }
 
 func float64ValueOrDefault(value *float64, fallback float64) float64 {
@@ -665,20 +633,6 @@ func boolValueOrDefault(value *bool, fallback bool) bool {
 	return *value
 }
 
-func defaultSubscriptionsValueOrDefault(input *[]dto.DefaultSubscriptionSetting, fallback []service.DefaultSubscriptionSetting) []service.DefaultSubscriptionSetting {
-	if input == nil {
-		return fallback
-	}
-	result := make([]service.DefaultSubscriptionSetting, 0, len(*input))
-	for _, item := range *input {
-		result = append(result, service.DefaultSubscriptionSetting{
-			GroupID:      item.GroupID,
-			ValidityDays: item.ValidityDays,
-		})
-	}
-	return result
-}
-
 // platformQuotasValueOrDefault 处理 auth-source platform quota 的 nil 语义：
 // nil = 请求未包含该字段（保留 fallback），non-nil（含 empty map）= 整体覆盖。
 // 注意：JSON null 与字段省略等价——两者均反序列化为 nil map，因此都保留旧值；
@@ -696,18 +650,6 @@ func equalStringSlice(a, b []string) bool {
 	}
 	for i := range a {
 		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
-func equalDefaultSubscriptions(a, b []service.DefaultSubscriptionSetting) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i].GroupID != b[i].GroupID || a[i].ValidityDays != b[i].ValidityDays {
 			return false
 		}
 	}

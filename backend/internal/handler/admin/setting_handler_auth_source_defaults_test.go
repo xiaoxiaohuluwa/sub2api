@@ -128,11 +128,10 @@ func TestSettingHandler_GetSettings_InjectsAuthSourceDefaults(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	repo := &settingHandlerRepoStub{
 		values: map[string]string{
-		service.SettingKeyRegistrationEnabled:                 "true",
-		service.SettingKeyAuthSourceDefaultEmailBalance:       "9.5",
-		service.SettingKeyAuthSourceDefaultEmailConcurrency:   "8",
-		service.SettingKeyAuthSourceDefaultEmailSubscriptions: `[{"group_id":31,"validity_days":15}]`,
-		service.SettingKeyForceEmailOnThirdPartySignup:        "true",
+			service.SettingKeyRegistrationEnabled:               "true",
+			service.SettingKeyAuthSourceDefaultEmailBalance:     "9.5",
+			service.SettingKeyAuthSourceDefaultEmailConcurrency: "8",
+			service.SettingKeyForceEmailOnThirdPartySignup:      "true",
 		},
 	}
 	svc := service.NewSettingService(repo, &config.Config{Default: config.DefaultConfig{UserConcurrency: 5}})
@@ -153,19 +152,15 @@ func TestSettingHandler_GetSettings_InjectsAuthSourceDefaults(t *testing.T) {
 	require.Equal(t, float64(8), data["auth_source_default_email_concurrency"])
 	require.Equal(t, true, data["force_email_on_third_party_signup"])
 
-	subscriptions, ok := data["auth_source_default_email_subscriptions"].([]any)
-	require.True(t, ok)
-	require.Len(t, subscriptions, 1)
 }
 
 func TestSettingHandler_UpdateSettings_PreservesOmittedAuthSourceDefaults(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	repo := &settingHandlerRepoStub{
 		values: map[string]string{
-		service.SettingKeyRegistrationEnabled:                    "false",
-		service.SettingKeyAuthSourceDefaultEmailBalance:          "9.5",
+			service.SettingKeyRegistrationEnabled:                    "false",
+			service.SettingKeyAuthSourceDefaultEmailBalance:          "9.5",
 			service.SettingKeyAuthSourceDefaultEmailConcurrency:      "8",
-			service.SettingKeyAuthSourceDefaultEmailSubscriptions:    `[{"group_id":31,"validity_days":15}]`,
 			service.SettingKeyAuthSourceDefaultEmailGrantOnSignup:    "true",
 			service.SettingKeyAuthSourceDefaultEmailGrantOnFirstBind: "false",
 			service.SettingKeyForceEmailOnThirdPartySignup:           "true",
@@ -191,7 +186,6 @@ func TestSettingHandler_UpdateSettings_PreservesOmittedAuthSourceDefaults(t *tes
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.Equal(t, "12.75000000", repo.values[service.SettingKeyAuthSourceDefaultEmailBalance])
 	require.Equal(t, "8", repo.values[service.SettingKeyAuthSourceDefaultEmailConcurrency])
-	require.Equal(t, `[{"group_id":31,"validity_days":15}]`, repo.values[service.SettingKeyAuthSourceDefaultEmailSubscriptions])
 	require.Equal(t, "true", repo.values[service.SettingKeyForceEmailOnThirdPartySignup])
 
 	var resp response.Response
@@ -206,8 +200,7 @@ func TestSettingHandler_UpdateSettings_PreservesOmittedAuthSourceDefaults(t *tes
 func TestSettingHandler_UpdateSettings_PersistsPaymentVisibleMethodsAndAdvancedScheduler(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	repo := &settingHandlerRepoStub{
-		values: map[string]string{
-			},
+		values: map[string]string{},
 	}
 	svc := service.NewSettingService(repo, &config.Config{Default: config.DefaultConfig{UserConcurrency: 5}})
 	handler := NewSettingHandler(svc, nil, nil, nil, nil, nil, nil)
@@ -257,7 +250,7 @@ func TestSettingHandler_UpdateSettings_PreservesLegacyBlankPaymentVisibleMethodS
 	gin.SetMode(gin.TestMode)
 	repo := &settingHandlerRepoStub{
 		values: map[string]string{
-		service.SettingPaymentVisibleMethodAlipayEnabled: "true",
+			service.SettingPaymentVisibleMethodAlipayEnabled: "true",
 			service.SettingPaymentVisibleMethodAlipaySource:  "",
 			service.SettingPaymentVisibleMethodWxpayEnabled:  "false",
 			service.SettingPaymentVisibleMethodWxpaySource:   "",
@@ -266,8 +259,7 @@ func TestSettingHandler_UpdateSettings_PreservesLegacyBlankPaymentVisibleMethodS
 	svc := service.NewSettingService(repo, &config.Config{Default: config.DefaultConfig{UserConcurrency: 5}})
 	handler := NewSettingHandler(svc, nil, nil, nil, nil, nil, nil)
 
-	body := map[string]any{
-	}
+	body := map[string]any{}
 	rawBody, err := json.Marshal(body)
 	require.NoError(t, err)
 
@@ -287,7 +279,7 @@ func TestSettingHandler_UpdateSettings_PersistsExplicitFalseOIDCCompatibilityFla
 	gin.SetMode(gin.TestMode)
 	repo := &settingHandlerRepoStub{
 		values: map[string]string{
-		service.SettingKeyOIDCConnectEnabled:             "true",
+			service.SettingKeyOIDCConnectEnabled:             "true",
 			service.SettingKeyOIDCConnectProviderName:        "OIDC",
 			service.SettingKeyOIDCConnectClientID:            "oidc-client",
 			service.SettingKeyOIDCConnectClientSecret:        "oidc-secret",
@@ -341,7 +333,7 @@ func TestSettingHandler_UpdateSettings_DoesNotSolidifyImplicitOIDCSecurityDefaul
 	gin.SetMode(gin.TestMode)
 	repo := &settingHandlerRepoStub{
 		values: map[string]string{
-		service.SettingKeyOIDCConnectEnabled:              "true",
+			service.SettingKeyOIDCConnectEnabled:              "true",
 			service.SettingKeyOIDCConnectProviderName:         "OIDC",
 			service.SettingKeyOIDCConnectClientID:             "oidc-client",
 			service.SettingKeyOIDCConnectClientSecret:         "oidc-secret",
@@ -407,8 +399,7 @@ func TestSettingHandler_UpdateSettings_DoesNotSolidifyImplicitOIDCSecurityDefaul
 func TestSettingHandler_UpdateSettings_RejectsInvalidPaymentVisibleMethodSource(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	repo := &settingHandlerRepoStub{
-		values: map[string]string{
-			},
+		values: map[string]string{},
 	}
 	svc := service.NewSettingService(repo, &config.Config{Default: config.DefaultConfig{UserConcurrency: 5}})
 	handler := NewSettingHandler(svc, nil, nil, nil, nil, nil, nil)
@@ -434,10 +425,9 @@ func TestSettingHandler_UpdateSettings_DoesNotPersistPartialSystemSettingsWhenAu
 	gin.SetMode(gin.TestMode)
 	repo := &failingAuthSourceSettingsRepoStub{
 		values: map[string]string{
-		service.SettingKeyRegistrationEnabled:                 "false",
-		service.SettingKeyAuthSourceDefaultEmailBalance:       "9.5",
-			service.SettingKeyAuthSourceDefaultEmailConcurrency:   "8",
-			service.SettingKeyAuthSourceDefaultEmailSubscriptions: `[{"group_id":31,"validity_days":15}]`,
+			service.SettingKeyRegistrationEnabled:               "false",
+			service.SettingKeyAuthSourceDefaultEmailBalance:     "9.5",
+			service.SettingKeyAuthSourceDefaultEmailConcurrency: "8",
 		},
 		err: errors.New("write auth source defaults failed"),
 	}
@@ -471,7 +461,6 @@ func TestDiffSettings_IncludesAuthSourceDefaultsAndForceEmail(t *testing.T) {
 			Email: service.ProviderDefaultGrantSettings{
 				Balance:          0,
 				Concurrency:      5,
-				Subscriptions:    nil,
 				GrantOnSignup:    true,
 				GrantOnFirstBind: false,
 			},
@@ -481,7 +470,6 @@ func TestDiffSettings_IncludesAuthSourceDefaultsAndForceEmail(t *testing.T) {
 			Email: service.ProviderDefaultGrantSettings{
 				Balance:          12.5,
 				Concurrency:      7,
-				Subscriptions:    []service.DefaultSubscriptionSetting{{GroupID: 21, ValidityDays: 30}},
 				GrantOnSignup:    false,
 				GrantOnFirstBind: true,
 			},
@@ -492,7 +480,6 @@ func TestDiffSettings_IncludesAuthSourceDefaultsAndForceEmail(t *testing.T) {
 
 	require.Contains(t, changed, "auth_source_default_email_balance")
 	require.Contains(t, changed, "auth_source_default_email_concurrency")
-	require.Contains(t, changed, "auth_source_default_email_subscriptions")
 	require.Contains(t, changed, "auth_source_default_email_grant_on_signup")
 	require.Contains(t, changed, "auth_source_default_email_grant_on_first_bind")
 	require.Contains(t, changed, "force_email_on_third_party_signup")

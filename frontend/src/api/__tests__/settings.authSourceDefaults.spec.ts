@@ -23,16 +23,10 @@ describe("admin settings auth source defaults helpers", () => {
     const state = buildAuthSourceDefaultsState({
       auth_source_default_email_balance: 9.5,
       auth_source_default_email_concurrency: 3,
-      auth_source_default_email_subscriptions: [
-        { group_id: 1, validity_days: 30 },
-      ],
       auth_source_default_email_grant_on_signup: false,
       auth_source_default_email_grant_on_first_bind: true,
       auth_source_default_linuxdo_balance: 6,
       auth_source_default_linuxdo_concurrency: 8,
-      auth_source_default_linuxdo_subscriptions: [
-        { group_id: 2, validity_days: 60 },
-      ],
       auth_source_default_linuxdo_grant_on_signup: true,
       auth_source_default_linuxdo_grant_on_first_bind: false,
     });
@@ -40,7 +34,6 @@ describe("admin settings auth source defaults helpers", () => {
     expect(state.email).toEqual({
       balance: 9.5,
       concurrency: 3,
-      subscriptions: [{ group_id: 1, validity_days: 30 }],
       grant_on_signup: false,
       grant_on_first_bind: true,
       platform_quotas: allNullQuotas,
@@ -48,7 +41,6 @@ describe("admin settings auth source defaults helpers", () => {
     expect(state.linuxdo).toEqual({
       balance: 6,
       concurrency: 8,
-      subscriptions: [{ group_id: 2, validity_days: 60 }],
       grant_on_signup: true,
       grant_on_first_bind: false,
       platform_quotas: allNullQuotas,
@@ -56,7 +48,6 @@ describe("admin settings auth source defaults helpers", () => {
     expect(state.oidc).toEqual({
       balance: 0,
       concurrency: 5,
-      subscriptions: [],
       grant_on_signup: false,
       grant_on_first_bind: false,
       platform_quotas: allNullQuotas,
@@ -64,7 +55,6 @@ describe("admin settings auth source defaults helpers", () => {
     expect(state.wechat).toEqual({
       balance: 0,
       concurrency: 5,
-      subscriptions: [],
       grant_on_signup: false,
       grant_on_first_bind: false,
       platform_quotas: allNullQuotas,
@@ -106,7 +96,6 @@ describe("admin settings auth source defaults helpers", () => {
       email: {
         balance: 1.25,
         concurrency: 2,
-        subscriptions: [{ group_id: 3, validity_days: 7 }],
         grant_on_signup: true,
         grant_on_first_bind: false,
         platform_quotas: {},
@@ -114,7 +103,6 @@ describe("admin settings auth source defaults helpers", () => {
       linuxdo: {
         balance: 0,
         concurrency: 6,
-        subscriptions: [],
         grant_on_signup: false,
         grant_on_first_bind: true,
         platform_quotas: {},
@@ -122,7 +110,6 @@ describe("admin settings auth source defaults helpers", () => {
       oidc: {
         balance: 4,
         concurrency: 9,
-        subscriptions: [{ group_id: 9, validity_days: 90 }],
         grant_on_signup: true,
         grant_on_first_bind: true,
         platform_quotas: {},
@@ -130,7 +117,6 @@ describe("admin settings auth source defaults helpers", () => {
       wechat: {
         balance: 2,
         concurrency: 5,
-        subscriptions: [],
         grant_on_signup: false,
         grant_on_first_bind: false,
         platform_quotas: {},
@@ -138,7 +124,6 @@ describe("admin settings auth source defaults helpers", () => {
       github: {
         balance: 0,
         concurrency: 5,
-        subscriptions: [],
         grant_on_signup: false,
         grant_on_first_bind: false,
         platform_quotas: {},
@@ -146,7 +131,6 @@ describe("admin settings auth source defaults helpers", () => {
       google: {
         balance: 0,
         concurrency: 5,
-        subscriptions: [],
         grant_on_signup: false,
         grant_on_first_bind: false,
         platform_quotas: {},
@@ -154,7 +138,6 @@ describe("admin settings auth source defaults helpers", () => {
       dingtalk: {
         balance: 0,
         concurrency: 5,
-        subscriptions: [],
         grant_on_signup: false,
         grant_on_first_bind: false,
         platform_quotas: {},
@@ -165,26 +148,18 @@ describe("admin settings auth source defaults helpers", () => {
       site_name: "Sub2API",
       auth_source_default_email_balance: 1.25,
       auth_source_default_email_concurrency: 2,
-      auth_source_default_email_subscriptions: [
-        { group_id: 3, validity_days: 7 },
-      ],
       auth_source_default_email_grant_on_signup: true,
       auth_source_default_email_grant_on_first_bind: false,
       auth_source_default_linuxdo_balance: 0,
       auth_source_default_linuxdo_concurrency: 6,
-      auth_source_default_linuxdo_subscriptions: [],
       auth_source_default_linuxdo_grant_on_signup: false,
       auth_source_default_linuxdo_grant_on_first_bind: true,
       auth_source_default_oidc_balance: 4,
       auth_source_default_oidc_concurrency: 9,
-      auth_source_default_oidc_subscriptions: [
-        { group_id: 9, validity_days: 90 },
-      ],
       auth_source_default_oidc_grant_on_signup: true,
       auth_source_default_oidc_grant_on_first_bind: true,
       auth_source_default_wechat_balance: 2,
       auth_source_default_wechat_concurrency: 5,
-      auth_source_default_wechat_subscriptions: [],
       auth_source_default_wechat_grant_on_signup: false,
       auth_source_default_wechat_grant_on_first_bind: false,
       // 嵌套 platform_quotas 字段
@@ -204,7 +179,6 @@ describe("admin settings auth source defaults helpers", () => {
       email: {
         balance: 0,
         concurrency: 5,
-        subscriptions: [],
         grant_on_signup: false,
         grant_on_first_bind: false,
         platform_quotas: {
@@ -212,12 +186,12 @@ describe("admin settings auth source defaults helpers", () => {
           openai:    { daily: 0, weekly: null, monthly: null },
         },
       },
-      linuxdo: { balance: 0, concurrency: 5, subscriptions: [], grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
-      oidc:    { balance: 0, concurrency: 5, subscriptions: [], grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
-      wechat:  { balance: 0, concurrency: 5, subscriptions: [], grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
-      github:  { balance: 0, concurrency: 5, subscriptions: [], grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
-      google:  { balance: 0, concurrency: 5, subscriptions: [], grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
-      dingtalk: { balance: 0, concurrency: 5, subscriptions: [], grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
+      linuxdo: { balance: 0, concurrency: 5, grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
+      oidc:    { balance: 0, concurrency: 5, grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
+      wechat:  { balance: 0, concurrency: 5, grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
+      github:  { balance: 0, concurrency: 5, grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
+      google:  { balance: 0, concurrency: 5, grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
+      dingtalk: { balance: 0, concurrency: 5, grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
     });
 
     const emailQuotas = (payload as Record<string, unknown>)["auth_source_default_email_platform_quotas"] as DefaultPlatformQuotasMap;

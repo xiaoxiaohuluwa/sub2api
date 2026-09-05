@@ -4,7 +4,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/Wei-Shaw/sub2api/internal/config"
@@ -63,7 +62,6 @@ func TestSettingService_GetAuthSourceDefaultSettings_ParsesValuesAndDefaults(t *
 		values: map[string]string{
 			SettingKeyAuthSourceDefaultEmailBalance:            "12.5",
 			SettingKeyAuthSourceDefaultEmailConcurrency:        "7",
-			SettingKeyAuthSourceDefaultEmailSubscriptions:      `[{"group_id":11,"validity_days":30}]`,
 			SettingKeyAuthSourceDefaultEmailGrantOnSignup:      "false",
 			SettingKeyAuthSourceDefaultLinuxDoGrantOnFirstBind: "true",
 			SettingKeyForceEmailOnThirdPartySignup:             "true",
@@ -75,12 +73,10 @@ func TestSettingService_GetAuthSourceDefaultSettings_ParsesValuesAndDefaults(t *
 	require.NoError(t, err)
 	require.Equal(t, 12.5, got.Email.Balance)
 	require.Equal(t, 7, got.Email.Concurrency)
-	require.Equal(t, []DefaultSubscriptionSetting{{GroupID: 11, ValidityDays: 30}}, got.Email.Subscriptions)
 	require.False(t, got.Email.GrantOnSignup)
 	require.False(t, got.Email.GrantOnFirstBind)
 	require.Equal(t, 0.0, got.LinuxDo.Balance)
 	require.Equal(t, 5, got.LinuxDo.Concurrency)
-	require.Equal(t, []DefaultSubscriptionSetting{}, got.LinuxDo.Subscriptions)
 	require.False(t, got.LinuxDo.GrantOnSignup)
 	require.True(t, got.LinuxDo.GrantOnFirstBind)
 	require.Equal(t, 5, got.OIDC.Concurrency)
@@ -98,28 +94,24 @@ func TestSettingService_UpdateAuthSourceDefaultSettings_PersistsAllKeys(t *testi
 		Email: ProviderDefaultGrantSettings{
 			Balance:          1.25,
 			Concurrency:      3,
-			Subscriptions:    []DefaultSubscriptionSetting{{GroupID: 21, ValidityDays: 14}},
 			GrantOnSignup:    false,
 			GrantOnFirstBind: true,
 		},
 		LinuxDo: ProviderDefaultGrantSettings{
 			Balance:          2,
 			Concurrency:      4,
-			Subscriptions:    []DefaultSubscriptionSetting{{GroupID: 22, ValidityDays: 30}},
 			GrantOnSignup:    true,
 			GrantOnFirstBind: false,
 		},
 		OIDC: ProviderDefaultGrantSettings{
 			Balance:          3,
 			Concurrency:      5,
-			Subscriptions:    []DefaultSubscriptionSetting{{GroupID: 23, ValidityDays: 60}},
 			GrantOnSignup:    true,
 			GrantOnFirstBind: true,
 		},
 		WeChat: ProviderDefaultGrantSettings{
 			Balance:          4,
 			Concurrency:      6,
-			Subscriptions:    []DefaultSubscriptionSetting{{GroupID: 24, ValidityDays: 90}},
 			GrantOnSignup:    false,
 			GrantOnFirstBind: false,
 		},
@@ -132,7 +124,4 @@ func TestSettingService_UpdateAuthSourceDefaultSettings_PersistsAllKeys(t *testi
 	require.Equal(t, "true", repo.updates[SettingKeyAuthSourceDefaultEmailGrantOnFirstBind])
 	require.Equal(t, "true", repo.updates[SettingKeyForceEmailOnThirdPartySignup])
 
-	var got []DefaultSubscriptionSetting
-	require.NoError(t, json.Unmarshal([]byte(repo.updates[SettingKeyAuthSourceDefaultWeChatSubscriptions]), &got))
-	require.Equal(t, []DefaultSubscriptionSetting{{GroupID: 24, ValidityDays: 90}}, got)
 }
