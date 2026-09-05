@@ -132,7 +132,6 @@ type RefundPlan struct {
 	DeductionType   string
 	BalanceToDeduct float64
 	SubDaysToDeduct int
-	SubscriptionID  int64
 }
 
 type RefundResult struct {
@@ -190,7 +189,6 @@ type PaymentService struct {
 	entClient                *dbent.Client
 	registry                 *payment.Registry
 	loadBalancer             payment.LoadBalancer
-	subscriptionSvc          *SubscriptionService
 	configService            *PaymentConfigService
 	userRepo                 UserRepository
 	groupRepo                GroupRepository
@@ -198,8 +196,8 @@ type PaymentService struct {
 	notificationEmailService *NotificationEmailService
 }
 
-func NewPaymentService(entClient *dbent.Client, registry *payment.Registry, loadBalancer payment.LoadBalancer, subscriptionSvc *SubscriptionService, configService *PaymentConfigService, userRepo UserRepository, groupRepo GroupRepository) *PaymentService {
-	svc := &PaymentService{entClient: entClient, registry: registry, loadBalancer: newVisibleMethodLoadBalancer(loadBalancer, configService), subscriptionSvc: subscriptionSvc, configService: configService, userRepo: userRepo, groupRepo: groupRepo}
+func NewPaymentService(entClient *dbent.Client, registry *payment.Registry, loadBalancer payment.LoadBalancer, configService *PaymentConfigService, userRepo UserRepository, groupRepo GroupRepository) *PaymentService {
+	svc := &PaymentService{entClient: entClient, registry: registry, loadBalancer: newVisibleMethodLoadBalancer(loadBalancer, configService), configService: configService, userRepo: userRepo, groupRepo: groupRepo}
 	svc.resumeService = psNewPaymentResumeService(configService)
 	return svc
 }

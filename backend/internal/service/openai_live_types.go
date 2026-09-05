@@ -43,7 +43,6 @@ type LiveCallIdentity struct {
 	APIKeyID        int64
 	UserID          int64
 	GroupID         *int64
-	SubscriptionID  *int64
 	UserAgent       string
 	IPAddress       string
 	InboundEndpoint string

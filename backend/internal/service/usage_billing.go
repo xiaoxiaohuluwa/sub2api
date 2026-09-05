@@ -24,7 +24,6 @@ type UsageBillingCommand struct {
 
 	UserID              int64
 	AccountID           int64
-	SubscriptionID      *int64
 	AccountType         string
 	Model               string
 	ServiceTier         string
@@ -37,7 +36,7 @@ type UsageBillingCommand struct {
 	ImageCount          int
 	MediaType           string
 
-	AccountQuotaCost    float64
+	AccountQuotaCost float64
 }
 
 func (c *UsageBillingCommand) Normalize() {
@@ -96,7 +95,6 @@ func buildUsageBillingFingerprint(c *UsageBillingCommand) string {
 		c.CacheReadTokens,
 		c.ImageCount,
 		strings.TrimSpace(c.MediaType),
-		valueOrZero(c.SubscriptionID),
 		c.AccountQuotaCost,
 	)
 	if payloadHash := strings.TrimSpace(c.RequestPayloadHash); payloadHash != "" {

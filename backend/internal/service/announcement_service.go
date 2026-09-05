@@ -15,20 +15,17 @@ type AnnouncementService struct {
 	announcementRepo AnnouncementRepository
 	readRepo         AnnouncementReadRepository
 	userRepo         UserRepository
-	userSubRepo      UserSubscriptionRepository
 }
 
 func NewAnnouncementService(
 	announcementRepo AnnouncementRepository,
 	readRepo AnnouncementReadRepository,
 	userRepo UserRepository,
-	userSubRepo UserSubscriptionRepository,
 ) *AnnouncementService {
 	return &AnnouncementService{
 		announcementRepo: announcementRepo,
 		readRepo:         readRepo,
 		userRepo:         userRepo,
-		userSubRepo:      userSubRepo,
 	}
 }
 
@@ -221,15 +218,6 @@ func (s *AnnouncementService) ListForUser(ctx context.Context, userID int64, unr
 		return nil, fmt.Errorf("get user: %w", err)
 	}
 
-	activeSubs, err := s.userSubRepo.ListActiveByUserID(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("list active subscriptions: %w", err)
-	}
-	activeGroupIDs := make(map[int64]struct{}, len(activeSubs))
-	for i := range activeSubs {
-		activeGroupIDs[activeSubs[i].GroupID] = struct{}{}
-	}
-
 	now := time.Now()
 	anns, err := s.announcementRepo.ListActive(ctx, now)
 	if err != nil {
@@ -243,7 +231,7 @@ func (s *AnnouncementService) ListForUser(ctx context.Context, userID int64, unr
 		if !a.IsActiveAt(now) {
 			continue
 		}
-		if !a.Targeting.Matches(user.Balance, activeGroupIDs) {
+		if !a.Targeting.Matches(user.Balance, nil) {
 			continue
 		}
 		visible = append(visible, a)
@@ -306,16 +294,7 @@ func (s *AnnouncementService) MarkRead(ctx context.Context, userID, announcement
 		return ErrAnnouncementNotFound
 	}
 
-	activeSubs, err := s.userSubRepo.ListActiveByUserID(ctx, userID)
-	if err != nil {
-		return fmt.Errorf("list active subscriptions: %w", err)
-	}
-	activeGroupIDs := make(map[int64]struct{}, len(activeSubs))
-	for i := range activeSubs {
-		activeGroupIDs[activeSubs[i].GroupID] = struct{}{}
-	}
-
-	if !a.Targeting.Matches(user.Balance, activeGroupIDs) {
+	if !a.Targeting.Matches(user.Balance, nil) {
 		return ErrAnnouncementNotFound
 	}
 
@@ -358,15 +337,6 @@ func (s *AnnouncementService) ListUserReadStatus(
 	out := make([]AnnouncementUserReadStatus, 0, len(users))
 	for i := range users {
 		u := users[i]
-		subs, err := s.userSubRepo.ListActiveByUserID(ctx, u.ID)
-		if err != nil {
-			return nil, nil, fmt.Errorf("list active subscriptions: %w", err)
-		}
-		activeGroupIDs := make(map[int64]struct{}, len(subs))
-		for j := range subs {
-			activeGroupIDs[subs[j].GroupID] = struct{}{}
-		}
-
 		readAt, ok := readMap[u.ID]
 		var ptr *time.Time
 		if ok {
@@ -379,7 +349,7 @@ func (s *AnnouncementService) ListUserReadStatus(
 			Email:    u.Email,
 			Username: u.Username,
 			Balance:  u.Balance,
-			Eligible: domain.AnnouncementTargeting(ann.Targeting).Matches(u.Balance, activeGroupIDs),
+			Eligible: domain.AnnouncementTargeting(ann.Targeting).Matches(u.Balance, nil),
 			ReadAt:   ptr,
 		})
 	}

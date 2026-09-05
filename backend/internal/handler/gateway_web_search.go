@@ -78,7 +78,6 @@ func (h *GatewayHandler) WebSearch(c *gin.Context) {
 	}
 
 	// Billing eligibility (same as other requests)
-	subscription, _ := middleware2.GetSubscriptionFromContext(c)
 	if err := h.billingCacheService.CheckBillingEligibility(c.Request.Context(), apiKey.User, apiKey, apiKey.Group, service.QuotaPlatform(c.Request.Context(), apiKey)); err != nil {
 		status, code, message, retryAfter := billingErrorDetails(err)
 		if retryAfter > 0 {
@@ -238,9 +237,7 @@ func (h *GatewayHandler) WebSearch(c *gin.Context) {
 			},
 			APIKey:             apiKey,
 			User:               apiKey.User,
-			Account:            account,
-			Subscription:       subscription,
-			InboundEndpoint:    inboundEndpoint,
+			Account:            account,			InboundEndpoint:    inboundEndpoint,
 			UpstreamEndpoint:   upstreamEndpoint,
 			UserAgent:          userAgent,
 			IPAddress:          clientIP,

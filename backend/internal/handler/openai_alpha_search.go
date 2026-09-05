@@ -89,7 +89,6 @@ func (h *OpenAIGatewayHandler) AlphaSearch(c *gin.Context) {
 
 	channelMapping, _ := h.gatewayService.ResolveChannelMappingAndRestrict(c.Request.Context(), apiKey.GroupID, requestedModel)
 	forwardBody := openAIModelMappedBody(body, channelMapping.Mapped, channelMapping.MappedModel, h.gatewayService.ReplaceModelInBody)
-	subscription, _ := middleware2.GetSubscriptionFromContext(c)
 	service.SetOpsLatencyMs(c, service.OpsAuthLatencyMsKey, time.Since(requestStart).Milliseconds())
 
 	userRelease, acquired := h.acquireResponsesUserSlot(c, subject.UserID, subject.Concurrency, false, &streamStarted, reqLog)
@@ -189,7 +188,7 @@ func (h *OpenAIGatewayHandler) AlphaSearch(c *gin.Context) {
 		if err == nil {
 			h.gatewayService.ReportOpenAIAccountScheduleResult(account, openAIAccountScheduleModel(c, account, requestedModel, false, result), true, nil)
 			if result != nil {
-				h.recordAlphaSearchUsage(c, apiKey, account, subscription, channelMapping, requestedModel, body, result, subject.UserID)
+				h.recordAlphaSearchUsage(c, apiKey, account, channelMapping, requestedModel, body, result, subject.UserID)
 			}
 			return
 		}
@@ -263,7 +262,6 @@ func (h *OpenAIGatewayHandler) recordAlphaSearchUsage(
 	c *gin.Context,
 	apiKey *service.APIKey,
 	account *service.Account,
-	subscription *service.UserSubscription,
 	channelMapping service.ChannelMappingResult,
 	requestedModel string,
 	body []byte,
@@ -280,12 +278,10 @@ func (h *OpenAIGatewayHandler) recordAlphaSearchUsage(
 
 	h.submitMandatoryUsageRecordTask(c.Request.Context(), func(ctx context.Context) {
 		if err := h.gatewayService.RecordUsage(ctx, &service.OpenAIRecordUsageInput{
-			Result:             result,
-			APIKey:             apiKey,
-			User:               apiKey.User,
-			Account:            account,
-			Subscription:       subscription,
-			InboundEndpoint:    inboundEndpoint,
+			Result:  result,
+			APIKey:  apiKey,
+			User:    apiKey.User,
+			Account: account, InboundEndpoint: inboundEndpoint,
 			UpstreamEndpoint:   upstreamEndpoint,
 			UserAgent:          userAgent,
 			IPAddress:          clientIP,

@@ -7,8 +7,7 @@ import (
 )
 
 const (
-	BillingTypeBalance      int8 = 0 // 钱包余额
-	BillingTypeSubscription int8 = 1 // 订阅套餐
+	BillingTypeBalance int8 = 0 // 钱包余额
 )
 
 type RequestType int16
@@ -144,8 +143,7 @@ type UsageLog struct {
 	// UpstreamEndpoint is the normalized upstream endpoint path, e.g. /v1/responses.
 	UpstreamEndpoint *string
 
-	GroupID        *int64
-	SubscriptionID *int64
+	GroupID *int64
 
 	InputTokens         int
 	OutputTokens        int
@@ -206,11 +204,10 @@ type UsageLog struct {
 
 	CreatedAt time.Time
 
-	User         *User
-	APIKey       *APIKey
-	Account      *Account
-	Group        *Group
-	Subscription *UserSubscription
+	User    *User
+	APIKey  *APIKey
+	Account *Account
+	Group   *Group
 }
 
 func (u *UsageLog) TotalTokens() int {

@@ -1254,7 +1254,7 @@ func prepareUsageLogInsert(log *service.UsageLog) usageLogInsertPrepared {
 	requestType := int16(log.RequestType)
 
 	groupID := nullInt64(log.GroupID)
-	subscriptionID := nullInt64(log.SubscriptionID)
+	var subscriptionID sql.NullInt64
 	duration := nullInt(log.DurationMs)
 	firstToken := nullInt(log.FirstTokenMs)
 	userAgent := nullString(log.UserAgent)
