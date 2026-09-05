@@ -8198,9 +8198,8 @@ type SettingsForm = Omit<
   | "wechat_connect_open_enabled"
   | "wechat_connect_mp_enabled"
   | "wechat_connect_mobile_enabled"
-  | `payment_${string}`
-  | `affiliate_${string}`
-  | "subscription_expiry_notify_enabled"
+   | `payment_${string}`
+   | "subscription_expiry_notify_enabled"
 > & {
   /** Form always binds a concrete boolean (SystemSettings marks this optional). */
   smtp_password: string;

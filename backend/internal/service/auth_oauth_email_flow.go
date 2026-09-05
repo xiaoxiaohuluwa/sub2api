@@ -276,13 +276,10 @@ func (s *AuthService) FinalizeOAuthEmailAccount(
 	user *User,
 	invitationCode string,
 	signupSource string,
-	affiliateCode string,
 ) error {
 	if s == nil || user == nil || user.ID <= 0 {
 		return ErrServiceUnavailable
 	}
-	// Retain the parameter for clients that submit aff_code with OAuth signup.
-	_ = affiliateCode
 
 	signupSource = normalizeOAuthSignupSource(signupSource)
 	invitationRedeemCode, err := s.validateOAuthRegistrationInvitation(ctx, invitationCode)

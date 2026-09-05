@@ -22,20 +22,6 @@ const (
 	RoleUser  = domain.RoleUser
 )
 
-// Affiliate rebate settings
-const (
-	AffiliateRebateRateDefault          = 20.0
-	AffiliateRebateRateMin              = 0.0
-	AffiliateRebateRateMax              = 100.0
-	AffiliateEnabledDefault             = false // 邀请返利总开关默认关闭
-	AffiliateRebateFreezeHoursDefault   = 0     // 0 = 不冻结（向后兼容）
-	AffiliateRebateFreezeHoursMax       = 720   // 最大 30 天
-	AffiliateRebateDurationDaysDefault  = 0     // 0 = 永久有效
-	AffiliateRebateDurationDaysMax      = 3650  // ~10 年
-	AffiliateRebatePerInviteeCapDefault = 0.0   // 0 = 无上限
-	AdminRechargeRebateEnabledDefault   = false // 管理员充值默认不产生返利
-)
-
 // Platform constants
 const (
 	PlatformAnthropic   = domain.PlatformAnthropic
@@ -146,8 +132,7 @@ const (
 	RedeemTypeBalance          = domain.RedeemTypeBalance
 	RedeemTypeConcurrency      = domain.RedeemTypeConcurrency
 	RedeemTypeSubscription     = domain.RedeemTypeSubscription
-	RedeemTypeInvitation       = domain.RedeemTypeInvitation
-	RedeemTypeAffiliateBalance = "affiliate_balance"
+	RedeemTypeInvitation = domain.RedeemTypeInvitation
 )
 
 // Admin adjustment type constants
@@ -194,14 +179,8 @@ const (
 	SettingKeyRegistrationEmailDomainQuotaEnabled = "registration_email_domain_quota_enabled"
 	SettingKeyPasswordResetEnabled                = "password_reset_enabled"           // 是否启用忘记密码功能（需要先开启邮件验证）
 	SettingKeyFrontendURL                         = "frontend_url"                     // 前端基础URL，用于生成邮件中的重置密码链接
-	SettingKeyInvitationCodeEnabled               = "invitation_code_enabled"          // 是否启用邀请码注册
-	SettingKeyAffiliateEnabled                    = "affiliate_enabled"                // 邀请返利功能总开关
-	SettingKeyAffiliateRebateRate                 = "affiliate_rebate_rate"            // 邀请返利比例（百分比，0-100）
-	SettingKeyAffiliateRebateFreezeHours          = "affiliate_rebate_freeze_hours"    // 返利冻结期（小时，0=不冻结）
-	SettingKeyAffiliateRebateDurationDays         = "affiliate_rebate_duration_days"   // 返利有效期（天，0=永久）
-	SettingKeyAffiliateRebatePerInviteeCap        = "affiliate_rebate_per_invitee_cap" // 单人返利上限（0=无上限）
-	SettingKeyAffiliateAdminRechargeEnabled       = "affiliate_admin_recharge_enabled" // 管理员充值是否产生返利
-	SettingKeyRiskControlEnabled                  = "risk_control_enabled"             // 是否启用风控中心入口与审计链路
+	SettingKeyInvitationCodeEnabled = "invitation_code_enabled"          // 是否启用邀请码注册
+	SettingKeyRiskControlEnabled    = "risk_control_enabled"             // 是否启用风控中心入口与审计链路
 	SettingKeyContentModerationConfig             = "content_moderation_config"        // 内容审计配置（JSON）
 	SettingKeyCyberSessionBlockEnabled            = "cyber_session_block_enabled"      // cyber 命中后会话级自动屏蔽总开关(默认关)
 	SettingKeyCyberSessionBlockTTLSeconds         = "cyber_session_block_ttl_seconds"  // 会话屏蔽 TTL 秒数(默认 3600)

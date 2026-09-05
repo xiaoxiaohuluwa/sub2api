@@ -2323,8 +2323,6 @@ type oauthPendingFlowTestHandlerOptions struct {
 	emailCache         service.EmailCache
 	settingValues      map[string]string
 	defaultSubAssigner service.DefaultSubscriptionAssigner
-	affiliateService   *service.AffiliateService
-	affiliateFactory   func(*dbent.Client, *service.SettingService) *service.AffiliateService
 	totpCache          service.TotpCache
 	totpEncryptor      service.SecretEncryptor
 	userRepoOptions    oauthPendingFlowUserRepoOptions
@@ -2364,21 +2362,6 @@ CREATE TABLE IF NOT EXISTS user_avatars (
 	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 )`)
 	require.NoError(t, err)
-	_, err = db.Exec(`
-CREATE TABLE IF NOT EXISTS user_affiliates (
-	user_id INTEGER PRIMARY KEY,
-	aff_code TEXT NOT NULL UNIQUE,
-	aff_code_custom BOOLEAN NOT NULL DEFAULT false,
-	aff_rebate_rate_percent REAL NULL,
-	inviter_id INTEGER NULL,
-	aff_count INTEGER NOT NULL DEFAULT 0,
-	aff_quota REAL NOT NULL DEFAULT 0,
-	aff_frozen_quota REAL NOT NULL DEFAULT 0,
-	aff_history_quota REAL NOT NULL DEFAULT 0,
-	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-)`)
-	require.NoError(t, err)
 
 	drv := entsql.OpenDB(dialect.SQLite, db)
 	client := enttest.NewClient(t, enttest.WithOptions(dbent.Driver(drv)))
@@ -2405,10 +2388,6 @@ CREATE TABLE IF NOT EXISTS user_affiliates (
 		settingValues[key] = value
 	}
 	settingSvc := service.NewSettingService(&oauthPendingFlowSettingRepoStub{values: settingValues}, cfg)
-	affiliateService := options.affiliateService
-	if affiliateService == nil && options.affiliateFactory != nil {
-		affiliateService = options.affiliateFactory(client, settingSvc)
-	}
 	userRepo := &oauthPendingFlowUserRepo{
 		client:  client,
 		options: options.userRepoOptions,

@@ -264,11 +264,6 @@ func (h *SettingHandler) GetSettings(c *gin.Context) {
 		RiskControlEnabled:                                     settings.RiskControlEnabled,
 		CyberSessionBlockEnabled:                               settings.CyberSessionBlockEnabled,
 		CyberSessionBlockTTLSeconds:                            settings.CyberSessionBlockTTLSeconds,
-		AffiliateRebateRate:                                    settings.AffiliateRebateRate,
-		AffiliateRebateFreezeHours:                             settings.AffiliateRebateFreezeHours,
-		AffiliateRebateDurationDays:                            settings.AffiliateRebateDurationDays,
-		AffiliateRebatePerInviteeCap:                           settings.AffiliateRebatePerInviteeCap,
-		AdminRechargeRebateEnabled:                             settings.AdminRechargeRebateEnabled,
 		DefaultUserRPMLimit:                                    settings.DefaultUserRPMLimit,
 		DefaultSubscriptions:                                   defaultSubscriptions,
 		EnableModelFallback:                                    settings.EnableModelFallback,
@@ -376,8 +371,6 @@ func (h *SettingHandler) GetSettings(c *gin.Context) {
 		ModelPlazaRequireAuth:   settings.ModelPlazaRequireAuth,
 		PluginManagementEnabled: settings.PluginManagementEnabled,
 		ModelPlazaDescription:   settings.ModelPlazaDescription,
-
-		AffiliateEnabled: settings.AffiliateEnabled,
 
 		AccountSchedulingThresholds: settings.AccountSchedulingThresholds,
 		AllowUserViewErrorRequests:  settings.AllowUserViewErrorRequests,

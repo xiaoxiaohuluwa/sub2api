@@ -408,11 +408,6 @@ export interface SystemSettings {
   login_agreement_updated_at: string;
   login_agreement_documents: LoginAgreementDocument[];
   // Default settings
-  affiliate_rebate_rate: number;
-  affiliate_rebate_freeze_hours: number;
-  affiliate_rebate_duration_days: number;
-  affiliate_rebate_per_invitee_cap: number;
-  affiliate_admin_recharge_enabled: boolean;
   default_concurrency: number;
   default_user_rpm_limit: number;
   default_subscriptions: DefaultSubscriptionSetting[];
@@ -700,9 +695,6 @@ export interface SystemSettings {
   model_plaza_description: string;
   plugin_management_enabled: boolean;
 
-  // Affiliate (邀请返利) feature switch
-  affiliate_enabled: boolean;
-
   // OpenAI fast/flex policy
   openai_fast_policy_settings?: OpenAIFastPolicySettings;
 
@@ -727,11 +719,6 @@ export interface UpdateSettingsRequest {
   login_agreement_mode?: "modal" | "checkbox" | string;
   login_agreement_updated_at?: string;
   login_agreement_documents?: LoginAgreementDocument[];
-  affiliate_rebate_rate?: number;
-  affiliate_rebate_freeze_hours?: number;
-  affiliate_rebate_duration_days?: number;
-  affiliate_rebate_per_invitee_cap?: number;
-  affiliate_admin_recharge_enabled?: boolean;
   default_concurrency?: number;
   default_user_rpm_limit?: number;
   default_subscriptions?: DefaultSubscriptionSetting[];
@@ -978,9 +965,6 @@ export interface UpdateSettingsRequest {
   model_plaza_require_auth?: boolean;
   model_plaza_description?: string;
   plugin_management_enabled?: boolean;
-
-  // Affiliate (邀请返利) feature switch
-  affiliate_enabled?: boolean;
 
   // OpenAI fast/flex policy
   openai_fast_policy_settings?: OpenAIFastPolicySettings;

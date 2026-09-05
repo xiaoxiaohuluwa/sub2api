@@ -123,10 +123,6 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 		SettingKeyOIDCConnectUserInfoIDPath:                 "",
 		SettingKeyOIDCConnectUserInfoUsernamePath:           "",
 		SettingKeyDefaultConcurrency:                        strconv.Itoa(s.cfg.Default.UserConcurrency),
-		SettingKeyAffiliateRebateRate:                       strconv.FormatFloat(AffiliateRebateRateDefault, 'f', 8, 64),
-		SettingKeyAffiliateRebateFreezeHours:                strconv.Itoa(AffiliateRebateFreezeHoursDefault),
-		SettingKeyAffiliateRebateDurationDays:               strconv.Itoa(AffiliateRebateDurationDaysDefault),
-		SettingKeyAffiliateRebatePerInviteeCap:              strconv.FormatFloat(AffiliateRebatePerInviteeCapDefault, 'f', 2, 64),
 		SettingKeyDefaultUserRPMLimit:                       "0",
 		SettingKeyDefaultSubscriptions:                      "[]",
 		SettingKeyAuthSourceDefaultEmailBalance:             "0",
@@ -196,10 +192,6 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 		SettingKeyModelPlazaRequireAuth:   "false",
 		SettingKeyModelPlazaDescription:   "",
 		SettingKeyPluginManagementEnabled: "false",
-
-		// Affiliate (邀请返利) feature (default disabled; opt-in)
-		SettingKeyAffiliateEnabled:              "false",
-		SettingKeyAffiliateAdminRechargeEnabled: strconv.FormatBool(AdminRechargeRebateEnabledDefault),
 
 		// 风控中心功能（默认关闭，显式启用）
 		SettingKeyRiskControlEnabled: "false",
@@ -377,28 +369,6 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 		result.DefaultUserRPMLimit = rpm
 	}
 
-	// 解析浮点数类型
-	if rebateRate, err := strconv.ParseFloat(settings[SettingKeyAffiliateRebateRate], 64); err == nil {
-		result.AffiliateRebateRate = clampAffiliateRebateRate(rebateRate)
-	} else {
-		result.AffiliateRebateRate = AffiliateRebateRateDefault
-	}
-	if freezeHours, err := strconv.Atoi(settings[SettingKeyAffiliateRebateFreezeHours]); err == nil && freezeHours >= 0 {
-		if freezeHours > AffiliateRebateFreezeHoursMax {
-			freezeHours = AffiliateRebateFreezeHoursMax
-		}
-		result.AffiliateRebateFreezeHours = freezeHours
-	}
-	if durationDays, err := strconv.Atoi(settings[SettingKeyAffiliateRebateDurationDays]); err == nil && durationDays >= 0 {
-		if durationDays > AffiliateRebateDurationDaysMax {
-			durationDays = AffiliateRebateDurationDaysMax
-		}
-		result.AffiliateRebateDurationDays = durationDays
-	}
-	if perInviteeCap, err := strconv.ParseFloat(settings[SettingKeyAffiliateRebatePerInviteeCap], 64); err == nil && perInviteeCap >= 0 {
-		result.AffiliateRebatePerInviteeCap = perInviteeCap
-	}
-	result.AdminRechargeRebateEnabled = settings[SettingKeyAffiliateAdminRechargeEnabled] == "true"
 	result.DefaultSubscriptions = parseDefaultSubscriptions(settings[SettingKeyDefaultSubscriptions])
 
 	// 敏感信息直接返回，方便测试连接时使用
@@ -795,9 +765,6 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 	result.ModelPlazaDescription = settings[SettingKeyModelPlazaDescription]
 	result.PluginManagementEnabled = settings[SettingKeyPluginManagementEnabled] == "true"
 
-	// Affiliate (邀请返利) feature (default: disabled; strict true)
-	result.AffiliateEnabled = settings[SettingKeyAffiliateEnabled] == "true"
-
 	// 风控中心功能（默认关闭，严格 true 才启用）
 	result.RiskControlEnabled = settings[SettingKeyRiskControlEnabled] == "true"
 
@@ -952,19 +919,6 @@ func normalizeOpenAITTFTMode(mode string) string {
 		return OpenAITTFTModeVisible
 	}
 	return OpenAITTFTModeSemantic
-}
-
-func clampAffiliateRebateRate(value float64) float64 {
-	if math.IsNaN(value) || math.IsInf(value, 0) {
-		return AffiliateRebateRateDefault
-	}
-	if value < AffiliateRebateRateMin {
-		return AffiliateRebateRateMin
-	}
-	if value > AffiliateRebateRateMax {
-		return AffiliateRebateRateMax
-	}
-	return value
 }
 
 func isFalseSettingValue(value string) bool {

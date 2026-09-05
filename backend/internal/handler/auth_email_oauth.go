@@ -25,7 +25,6 @@ const (
 	emailOAuthStateCookieName = "email_oauth_state"
 	emailOAuthRedirectCookie  = "email_oauth_redirect"
 	emailOAuthProviderCookie  = "email_oauth_provider"
-	emailOAuthAffiliateCookie = "email_oauth_affiliate"
 	emailOAuthCookieMaxAgeSec = 10 * 60
 	emailOAuthDefaultRedirect = "/dashboard"
 )
@@ -81,11 +80,6 @@ func (h *AuthHandler) emailOAuthStart(c *gin.Context, provider string) {
 	emailOAuthSetCookie(c, emailOAuthStateCookieName, encodeCookieValue(state), secureCookie)
 	emailOAuthSetCookie(c, emailOAuthRedirectCookie, encodeCookieValue(redirectTo), secureCookie)
 	emailOAuthSetCookie(c, emailOAuthProviderCookie, encodeCookieValue(provider), secureCookie)
-	if affCode := strings.TrimSpace(firstNonEmpty(c.Query("aff_code"), c.Query("aff"))); affCode != "" {
-		emailOAuthSetCookie(c, emailOAuthAffiliateCookie, encodeCookieValue(affCode), secureCookie)
-	} else {
-		emailOAuthClearCookie(c, emailOAuthAffiliateCookie, secureCookie)
-	}
 
 	authURL, err := buildEmailOAuthAuthorizeURL(cfg, state)
 	if err != nil {
@@ -121,7 +115,6 @@ func (h *AuthHandler) emailOAuthCallback(c *gin.Context, provider string) {
 		emailOAuthClearCookie(c, emailOAuthStateCookieName, secureCookie)
 		emailOAuthClearCookie(c, emailOAuthRedirectCookie, secureCookie)
 		emailOAuthClearCookie(c, emailOAuthProviderCookie, secureCookie)
-		emailOAuthClearCookie(c, emailOAuthAffiliateCookie, secureCookie)
 	}()
 	expectedState, err := readCookieDecoded(c, emailOAuthStateCookieName)
 	if err != nil || expectedState == "" || expectedState != state {
@@ -243,16 +236,6 @@ func (h *AuthHandler) emailOAuthShouldCreatePendingRegistration(ctx context.Cont
 	return false, nil
 }
 
-func (h *AuthHandler) emailOAuthAffiliateCode(c *gin.Context) string {
-	if c == nil {
-		return ""
-	}
-	if code, err := readCookieDecoded(c, emailOAuthAffiliateCookie); err == nil {
-		return strings.TrimSpace(code)
-	}
-	return ""
-}
-
 func (h *AuthHandler) createEmailOAuthRegistrationPendingSession(
 	c *gin.Context,
 	provider string,
@@ -271,7 +254,6 @@ func (h *AuthHandler) createEmailOAuthRegistrationPendingSession(
 
 	email := strings.TrimSpace(strings.ToLower(profile.Email))
 	username := strings.TrimSpace(profile.Username)
-	affiliateCode := h.emailOAuthAffiliateCode(c)
 	upstreamClaims := map[string]any{
 		"email":            email,
 		"email_verified":   profile.EmailVerified,
@@ -285,9 +267,6 @@ func (h *AuthHandler) createEmailOAuthRegistrationPendingSession(
 	}
 	if strings.TrimSpace(profile.AvatarURL) != "" {
 		upstreamClaims["suggested_avatar_url"] = strings.TrimSpace(profile.AvatarURL)
-	}
-	if affiliateCode != "" {
-		upstreamClaims["aff_code"] = affiliateCode
 	}
 	for key, value := range profile.Metadata {
 		if _, exists := upstreamClaims[key]; !exists {
@@ -334,7 +313,6 @@ func (h *AuthHandler) createEmailOAuthRegistrationPendingSession(
 type completeEmailOAuthRequest struct {
 	Password       string `json:"password" binding:"required,min=6"`
 	InvitationCode string `json:"invitation_code,omitempty"`
-	AffCode        string `json:"aff_code,omitempty"`
 }
 
 func (h *AuthHandler) completeEmailOAuthRegistration(c *gin.Context, provider string) {
@@ -360,11 +338,6 @@ func (h *AuthHandler) completeEmailOAuthRegistration(c *gin.Context, provider st
 	if err := h.ensureBackendModeAllowsNewUserLogin(c.Request.Context()); err != nil {
 		response.ErrorFrom(c, err)
 		return
-	}
-
-	affiliateCode := strings.TrimSpace(req.AffCode)
-	if affiliateCode == "" {
-		affiliateCode = pendingSessionStringValue(session.UpstreamIdentityClaims, "aff_code")
 	}
 
 	tokenPair, user, err := h.authService.RegisterVerifiedOAuthEmailAccount(
@@ -414,7 +387,6 @@ func (h *AuthHandler) completeEmailOAuthRegistration(c *gin.Context, provider st
 		user,
 		strings.TrimSpace(req.InvitationCode),
 		strings.TrimSpace(session.ProviderType),
-		affiliateCode,
 	); err != nil {
 		_ = tx.Rollback()
 		_ = h.authService.RollbackOAuthEmailAccountCreation(c.Request.Context(), user.ID, strings.TrimSpace(req.InvitationCode))

@@ -71,7 +71,6 @@ type createPendingOAuthAccountRequest struct {
 	TencentCaptchaTicket  string `json:"tencent_captcha_ticket,omitempty"`
 	TencentCaptchaRandstr string `json:"tencent_captcha_randstr,omitempty"`
 	InvitationCode        string `json:"invitation_code,omitempty"`
-	AffCode               string `json:"aff_code,omitempty"`
 	AdoptDisplayName      *bool  `json:"adopt_display_name,omitempty"`
 	AdoptAvatar           *bool  `json:"adopt_avatar,omitempty"`
 }
@@ -1794,7 +1793,6 @@ func (h *AuthHandler) createPendingOAuthAccount(c *gin.Context, provider string)
 		user,
 		strings.TrimSpace(req.InvitationCode),
 		strings.TrimSpace(session.ProviderType),
-		strings.TrimSpace(req.AffCode),
 	); err != nil {
 		_ = tx.Rollback()
 		if rollbackCreatedUser(err) {

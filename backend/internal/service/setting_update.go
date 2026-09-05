@@ -361,27 +361,6 @@ func (s *SettingService) buildSystemSettingsUpdates(ctx context.Context, setting
 
 	// 默认配置
 	updates[SettingKeyDefaultConcurrency] = strconv.Itoa(settings.DefaultConcurrency)
-	settings.AffiliateRebateRate = clampAffiliateRebateRate(settings.AffiliateRebateRate)
-	updates[SettingKeyAffiliateRebateRate] = strconv.FormatFloat(settings.AffiliateRebateRate, 'f', 8, 64)
-	if settings.AffiliateRebateFreezeHours < 0 {
-		settings.AffiliateRebateFreezeHours = AffiliateRebateFreezeHoursDefault
-	}
-	if settings.AffiliateRebateFreezeHours > AffiliateRebateFreezeHoursMax {
-		settings.AffiliateRebateFreezeHours = AffiliateRebateFreezeHoursMax
-	}
-	updates[SettingKeyAffiliateRebateFreezeHours] = strconv.Itoa(settings.AffiliateRebateFreezeHours)
-	if settings.AffiliateRebateDurationDays < 0 {
-		settings.AffiliateRebateDurationDays = AffiliateRebateDurationDaysDefault
-	}
-	if settings.AffiliateRebateDurationDays > AffiliateRebateDurationDaysMax {
-		settings.AffiliateRebateDurationDays = AffiliateRebateDurationDaysMax
-	}
-	updates[SettingKeyAffiliateRebateDurationDays] = strconv.Itoa(settings.AffiliateRebateDurationDays)
-	if settings.AffiliateRebatePerInviteeCap < 0 {
-		settings.AffiliateRebatePerInviteeCap = AffiliateRebatePerInviteeCapDefault
-	}
-	updates[SettingKeyAffiliateRebatePerInviteeCap] = strconv.FormatFloat(settings.AffiliateRebatePerInviteeCap, 'f', 8, 64)
-	updates[SettingKeyAffiliateAdminRechargeEnabled] = strconv.FormatBool(settings.AdminRechargeRebateEnabled)
 	updates[SettingKeyDefaultUserRPMLimit] = strconv.Itoa(settings.DefaultUserRPMLimit)
 	defaultSubsJSON, err := json.Marshal(settings.DefaultSubscriptions)
 	if err != nil {
@@ -425,9 +404,6 @@ func (s *SettingService) buildSystemSettingsUpdates(ctx context.Context, setting
 	updates[SettingKeyModelPlazaRequireAuth] = strconv.FormatBool(settings.ModelPlazaRequireAuth)
 	updates[SettingKeyModelPlazaDescription] = settings.ModelPlazaDescription
 	updates[SettingKeyPluginManagementEnabled] = strconv.FormatBool(settings.PluginManagementEnabled)
-
-	// Affiliate (邀请返利) feature switch
-	updates[SettingKeyAffiliateEnabled] = strconv.FormatBool(settings.AffiliateEnabled)
 
 	// 风控中心功能开关
 	updates[SettingKeyRiskControlEnabled] = strconv.FormatBool(settings.RiskControlEnabled)
