@@ -58,13 +58,11 @@ func newAliyunAuthServiceForTest(cfg *config.Config, settings map[string]string,
 		nil, // entClient
 		nil, // userRepo
 		nil,
-		nil, // refreshTokenCache
 		cfg,
 		settingService,
 		nil, // emailService
 		NewTurnstileService(settingService, &turnstileVerifierSpy{}),
 		nil, // emailQueueService
-		nil, // defaultSubAssigner
 		nil, // userPlatformQuotaRepo
 	)
 	authService.SetAliyunCaptchaService(NewAliyunCaptchaService(settingService, aliyunSpy))

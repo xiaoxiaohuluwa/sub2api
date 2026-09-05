@@ -76,11 +76,6 @@ type emailCacheStub struct {
 	err  error
 }
 
-type defaultSubscriptionAssignerStub struct {
-	calls []AssignSubscriptionInput
-	err   error
-}
-
 type refreshTokenCacheStub struct{}
 
 type userPlatformQuotaRepoStub struct {
@@ -117,16 +112,6 @@ func (s *userPlatformQuotaRepoStub) ResetExpiredWindow(context.Context, int64, s
 
 func (s *userPlatformQuotaRepoStub) BatchSnapshotUsage(_ context.Context, _ []UserPlatformQuotaSnapshot, _ time.Time) error {
 	return nil
-}
-
-func (s *defaultSubscriptionAssignerStub) AssignOrExtendSubscription(_ context.Context, input *AssignSubscriptionInput) (*UserSubscription, bool, error) {
-	if input != nil {
-		s.calls = append(s.calls, *input)
-	}
-	if s.err != nil {
-		return nil, false, s.err
-	}
-	return &UserSubscription{UserID: input.UserID, GroupID: input.GroupID}, false, nil
 }
 
 func (s *refreshTokenCacheStub) StoreRefreshToken(context.Context, string, *RefreshTokenData, time.Duration) error {
@@ -250,13 +235,10 @@ func newAuthService(repo *userRepoStub, settings map[string]string, emailCache E
 		nil, // entClient
 		repo,
 		nil,
-		nil, // refreshTokenCache
 		cfg,
 		settingService,
 		emailService,
 		nil,
-		nil,
-		nil, // defaultSubAssigner
 		quotaRepo,
 	)
 }
@@ -753,108 +735,59 @@ func TestAuthService_GenerateToken_UsesMinutesWhenConfigured(t *testing.T) {
 	require.WithinDuration(t, claims.IssuedAt.Time.Add(90*time.Minute), claims.ExpiresAt.Time, 2*time.Second)
 }
 
-func TestAuthService_Register_AssignsDefaultSubscriptions(t *testing.T) {
-	repo := &userRepoStub{nextID: 42}
-	assigner := &defaultSubscriptionAssignerStub{}
-	service := newAuthService(repo, map[string]string{
-		SettingKeyRegistrationEnabled:                 "true",
-		SettingKeyDefaultSubscriptions:                `[{"group_id":11,"validity_days":30},{"group_id":12,"validity_days":7}]`,
-		SettingKeyAuthSourceDefaultEmailGrantOnSignup: "false",
-	}, nil, nil)
-	service.defaultSubAssigner = assigner
-
-	_, user, err := service.Register(context.Background(), "default-sub@test.com", "password")
-	require.NoError(t, err)
-	require.NotNil(t, user)
-	require.Len(t, assigner.calls, 2)
-	require.Equal(t, int64(42), assigner.calls[0].UserID)
-	require.Equal(t, int64(11), assigner.calls[0].GroupID)
-	require.Equal(t, 30, assigner.calls[0].ValidityDays)
-	require.Equal(t, int64(12), assigner.calls[1].GroupID)
-	require.Equal(t, 7, assigner.calls[1].ValidityDays)
-}
-
 func TestAuthService_Register_UsesEmailAuthSourceDefaultsWhenGrantEnabled(t *testing.T) {
 	repo := &userRepoStub{nextID: 52}
-	assigner := &defaultSubscriptionAssignerStub{}
 	service := newAuthService(repo, map[string]string{
 		SettingKeyRegistrationEnabled:                 "true",
-		SettingKeyDefaultSubscriptions:                `[{"group_id":91,"validity_days":3}]`,
 		SettingKeyAuthSourceDefaultEmailBalance:       "12.5",
 		SettingKeyAuthSourceDefaultEmailConcurrency:   "7",
-		SettingKeyAuthSourceDefaultEmailSubscriptions: `[{"group_id":11,"validity_days":30}]`,
 		SettingKeyAuthSourceDefaultEmailGrantOnSignup: "true",
 	}, nil, nil)
-	service.defaultSubAssigner = assigner
-
 	_, user, err := service.Register(context.Background(), "email-defaults@test.com", "password")
 	require.NoError(t, err)
 	require.NotNil(t, user)
 	require.Equal(t, 12.5, user.Balance)
 	require.Equal(t, 7, user.Concurrency)
-	require.Len(t, assigner.calls, 1)
-	require.Equal(t, int64(11), assigner.calls[0].GroupID)
-	require.Equal(t, 30, assigner.calls[0].ValidityDays)
 }
 
 func TestAuthService_Register_GrantOnSignupFalseFallsBackToGlobalDefaults(t *testing.T) {
 	repo := &userRepoStub{nextID: 53}
-	assigner := &defaultSubscriptionAssignerStub{}
 	service := newAuthService(repo, map[string]string{
 		SettingKeyRegistrationEnabled:                 "true",
-		SettingKeyDefaultSubscriptions:                `[{"group_id":31,"validity_days":5}]`,
 		SettingKeyAuthSourceDefaultEmailBalance:       "99",
 		SettingKeyAuthSourceDefaultEmailConcurrency:   "88",
-		SettingKeyAuthSourceDefaultEmailSubscriptions: `[{"group_id":32,"validity_days":9}]`,
 		SettingKeyAuthSourceDefaultEmailGrantOnSignup: "false",
 	}, nil, nil)
-	service.defaultSubAssigner = assigner
-
 	_, user, err := service.Register(context.Background(), "email-global@test.com", "password")
 	require.NoError(t, err)
 	require.NotNil(t, user)
 	require.Equal(t, 3.5, user.Balance)
 	require.Equal(t, 2, user.Concurrency)
-	require.Len(t, assigner.calls, 1)
-	require.Equal(t, int64(31), assigner.calls[0].GroupID)
-	require.Equal(t, 5, assigner.calls[0].ValidityDays)
 }
 
 func TestAuthService_Register_GrantOnSignupMergesSourceOverridesWithGlobalDefaults(t *testing.T) {
 	repo := &userRepoStub{nextID: 54}
-	assigner := &defaultSubscriptionAssignerStub{}
 	service := newAuthService(repo, map[string]string{
 		SettingKeyRegistrationEnabled:                 "true",
-		SettingKeyDefaultSubscriptions:                `[{"group_id":31,"validity_days":5}]`,
 		SettingKeyAuthSourceDefaultEmailBalance:       "9.5",
 		SettingKeyAuthSourceDefaultEmailConcurrency:   "5",
-		SettingKeyAuthSourceDefaultEmailSubscriptions: `[]`,
 		SettingKeyAuthSourceDefaultEmailGrantOnSignup: "true",
 	}, nil, nil)
-	service.defaultSubAssigner = assigner
-
 	_, user, err := service.Register(context.Background(), "email-merged@test.com", "password")
 	require.NoError(t, err)
 	require.NotNil(t, user)
 	require.Equal(t, 9.5, user.Balance)
 	require.Equal(t, 5, user.Concurrency)
-	require.Len(t, assigner.calls, 1)
-	require.Equal(t, int64(31), assigner.calls[0].GroupID)
-	require.Equal(t, 5, assigner.calls[0].ValidityDays)
 }
 
 func TestAuthService_LoginOrRegisterOAuthWithTokenPair_UsesLinuxDoAuthSourceDefaultsOnSignup(t *testing.T) {
 	repo := &userRepoStub{nextID: 61}
-	assigner := &defaultSubscriptionAssignerStub{}
 	service := newAuthService(repo, map[string]string{
 		SettingKeyRegistrationEnabled:                   "true",
-		SettingKeyDefaultSubscriptions:                  `[{"group_id":81,"validity_days":1}]`,
 		SettingKeyAuthSourceDefaultLinuxDoBalance:       "21.75",
 		SettingKeyAuthSourceDefaultLinuxDoConcurrency:   "9",
-		SettingKeyAuthSourceDefaultLinuxDoSubscriptions: `[{"group_id":22,"validity_days":14}]`,
 		SettingKeyAuthSourceDefaultLinuxDoGrantOnSignup: "true",
 	}, nil, nil)
-	service.defaultSubAssigner = assigner
 	service.refreshTokenCache = &refreshTokenCacheStub{}
 
 	tokenPair, user, err := service.LoginOrRegisterOAuthWithTokenPair(context.Background(), "linuxdo-123@linuxdo-connect.invalid", "linuxdo_user", "", "", "linuxdo")
@@ -865,9 +798,6 @@ func TestAuthService_LoginOrRegisterOAuthWithTokenPair_UsesLinuxDoAuthSourceDefa
 	require.Equal(t, 21.75, user.Balance)
 	require.Equal(t, 9, user.Concurrency)
 	require.Len(t, repo.created, 1)
-	require.Len(t, assigner.calls, 1)
-	require.Equal(t, int64(22), assigner.calls[0].GroupID)
-	require.Equal(t, 14, assigner.calls[0].ValidityDays)
 }
 
 func TestAuthService_LoginOrRegisterOAuthWithTokenPair_ExistingUserDoesNotGrantAgain(t *testing.T) {
@@ -882,15 +812,12 @@ func TestAuthService_LoginOrRegisterOAuthWithTokenPair_ExistingUserDoesNotGrantA
 		TokenVersion: 2,
 	}
 	repo := &userRepoStub{user: existing}
-	assigner := &defaultSubscriptionAssignerStub{}
 	service := newAuthService(repo, map[string]string{
 		SettingKeyRegistrationEnabled:                   "true",
 		SettingKeyAuthSourceDefaultLinuxDoBalance:       "21.75",
 		SettingKeyAuthSourceDefaultLinuxDoConcurrency:   "9",
-		SettingKeyAuthSourceDefaultLinuxDoSubscriptions: `[{"group_id":22,"validity_days":14}]`,
 		SettingKeyAuthSourceDefaultLinuxDoGrantOnSignup: "true",
 	}, nil, nil)
-	service.defaultSubAssigner = assigner
 	service.refreshTokenCache = &refreshTokenCacheStub{}
 
 	tokenPair, user, err := service.LoginOrRegisterOAuthWithTokenPair(context.Background(), existing.Email, "linuxdo_user", "", "", "linuxdo")
@@ -900,7 +827,6 @@ func TestAuthService_LoginOrRegisterOAuthWithTokenPair_ExistingUserDoesNotGrantA
 	require.Equal(t, 4.0, user.Balance)
 	require.Equal(t, 1, user.Concurrency)
 	require.Empty(t, repo.created)
-	require.Empty(t, assigner.calls)
 }
 
 // newAuthServiceWithDingTalkCfg 构建一个含完整 DingTalk config 的 AuthService，
@@ -912,7 +838,7 @@ func newAuthServiceWithDingTalkCfg(settings map[string]string, dtCfg config.Ding
 		DingTalk: dtCfg,
 	}
 	settingService := NewSettingService(&settingRepoStub{values: settings}, cfg)
-	return NewAuthService(nil, nil, nil, nil, cfg, settingService, nil, nil, nil, nil, nil, nil, nil)
+	return NewAuthService(nil, nil, nil, cfg, settingService, nil, nil, nil, nil)
 }
 
 // minDingTalkURLs 返回一个包含必填字段的基础 DingTalkConnectConfig（不设 Enabled/BypassRegistration/Policy）。

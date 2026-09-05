@@ -1915,15 +1915,12 @@ func TestBindOIDCOAuthLoginReclaimsIdentityOwnedBySoftDeletedUser(t *testing.T) 
 }
 
 func TestBindOIDCOAuthLoginAppliesFirstBindGrantOnce(t *testing.T) {
-	defaultSubAssigner := &oauthPendingFlowDefaultSubAssignerStub{}
 	handler, client := newOAuthPendingFlowTestHandlerWithDependencies(t, oauthPendingFlowTestHandlerOptions{
 		settingValues: map[string]string{
 			service.SettingKeyAuthSourceDefaultOIDCBalance:          "12.5",
 			service.SettingKeyAuthSourceDefaultOIDCConcurrency:      "3",
-			service.SettingKeyAuthSourceDefaultOIDCSubscriptions:    `[{"group_id":101,"validity_days":30}]`,
 			service.SettingKeyAuthSourceDefaultOIDCGrantOnFirstBind: "true",
 		},
-		defaultSubAssigner: defaultSubAssigner,
 	})
 	ctx := context.Background()
 
@@ -1977,10 +1974,6 @@ func TestBindOIDCOAuthLoginAppliesFirstBindGrantOnce(t *testing.T) {
 	require.Equal(t, 17.5, storedUser.Balance)
 	require.Equal(t, 5, storedUser.Concurrency)
 	require.Zero(t, storedUser.TotalRecharged)
-	require.Len(t, defaultSubAssigner.calls, 1)
-	require.Equal(t, int64(existingUser.ID), defaultSubAssigner.calls[0].UserID)
-	require.Equal(t, int64(101), defaultSubAssigner.calls[0].GroupID)
-	require.Equal(t, 30, defaultSubAssigner.calls[0].ValidityDays)
 	require.Equal(t, 1, countProviderGrantRecords(t, client, existingUser.ID, "oidc", "first_bind"))
 
 	secondSession, err := client.PendingAuthSession.Create().
@@ -2019,7 +2012,6 @@ func TestBindOIDCOAuthLoginAppliesFirstBindGrantOnce(t *testing.T) {
 	require.Equal(t, 17.5, storedUser.Balance)
 	require.Equal(t, 5, storedUser.Concurrency)
 	require.Zero(t, storedUser.TotalRecharged)
-	require.Len(t, defaultSubAssigner.calls, 1)
 	require.Equal(t, 1, countProviderGrantRecords(t, client, existingUser.ID, "oidc", "first_bind"))
 }
 
@@ -2143,7 +2135,6 @@ func TestBindOIDCOAuthLoginReturns2FAChallengeWhenUserHasTotp(t *testing.T) {
 
 func TestLogin2FACompletesPendingOAuthBindAndConsumesSession(t *testing.T) {
 	totpCache := &oauthPendingFlowTotpCacheStub{}
-	defaultSubAssigner := &oauthPendingFlowDefaultSubAssignerStub{}
 	handler, client := newOAuthPendingFlowTestHandlerWithDependencies(t, oauthPendingFlowTestHandlerOptions{
 		settingValues: map[string]string{
 			service.SettingKeyTotpEnabled:                           "true",
@@ -2151,9 +2142,8 @@ func TestLogin2FACompletesPendingOAuthBindAndConsumesSession(t *testing.T) {
 			service.SettingKeyAuthSourceDefaultOIDCConcurrency:      "2",
 			service.SettingKeyAuthSourceDefaultOIDCGrantOnFirstBind: "true",
 		},
-		defaultSubAssigner: defaultSubAssigner,
-		totpCache:          totpCache,
-		totpEncryptor:      oauthPendingFlowTotpEncryptorStub{},
+		totpCache:     totpCache,
+		totpEncryptor: oauthPendingFlowTotpEncryptorStub{},
 	})
 	ctx := context.Background()
 
@@ -2259,7 +2249,6 @@ func TestLogin2FACompletesPendingOAuthBindAndConsumesSession(t *testing.T) {
 	require.Equal(t, 9.5, storedUser.Balance)
 	require.Equal(t, 6, storedUser.Concurrency)
 	require.Equal(t, 1, countProviderGrantRecords(t, client, existingUser.ID, "oidc", "first_bind"))
-	require.Empty(t, defaultSubAssigner.calls)
 }
 
 func newOAuthPendingFlowTestHandler(t *testing.T, invitationEnabled bool) (*AuthHandler, *dbent.Client) {
@@ -2307,7 +2296,6 @@ type oauthPendingFlowTestHandlerOptions struct {
 	emailVerifyEnabled bool
 	emailCache         service.EmailCache
 	settingValues      map[string]string
-	defaultSubAssigner service.DefaultSubscriptionAssigner
 	totpCache          service.TotpCache
 	totpEncryptor      service.SecretEncryptor
 	userRepoOptions    oauthPendingFlowUserRepoOptions
@@ -2393,8 +2381,6 @@ CREATE TABLE IF NOT EXISTS user_avatars (
 		emailService,
 		nil,
 		nil,
-		options.defaultSubAssigner,
-		nil,
 	)
 	userSvc := service.NewUserService(userRepo, nil, nil, nil)
 	var totpSvc *service.TotpService
@@ -2411,10 +2397,10 @@ CREATE TABLE IF NOT EXISTS user_avatars (
 	}
 
 	return &AuthHandler{
-		authService:  authSvc,
-		userService:  userSvc,
-		settingSvc:   settingSvc,
-		totpService:  totpSvc,
+		authService: authSvc,
+		userService: userSvc,
+		settingSvc:  settingSvc,
+		totpService: totpSvc,
 	}, client
 }
 
@@ -3068,20 +3054,6 @@ func oauthPendingFlowServiceUser(entity *dbent.User) *service.User {
 		CreatedAt:           entity.CreatedAt,
 		UpdatedAt:           entity.UpdatedAt,
 	}
-}
-
-type oauthPendingFlowDefaultSubAssignerStub struct {
-	calls []service.AssignSubscriptionInput
-}
-
-func (s *oauthPendingFlowDefaultSubAssignerStub) AssignOrExtendSubscription(
-	_ context.Context,
-	input *service.AssignSubscriptionInput,
-) (*service.UserSubscription, bool, error) {
-	if input != nil {
-		s.calls = append(s.calls, *input)
-	}
-	return nil, false, nil
 }
 
 type oauthPendingFlowTotpCacheStub struct {

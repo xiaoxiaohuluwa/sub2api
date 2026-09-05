@@ -51,8 +51,7 @@ func ProvideEmailQueueService(emailService *EmailService) *EmailQueueService {
 	return NewEmailQueueService(emailService, 3)
 }
 
-// ProvideAuthService wires the optional captcha providers into AuthService while
-// keeping NewAuthService's public constructor compatible with existing tests.
+// ProvideAuthService wires the optional captcha providers into AuthService.
 func ProvideAuthService(
 	entClient *dbent.Client,
 	userRepo UserRepository,
@@ -64,7 +63,6 @@ func ProvideAuthService(
 	tencentCaptchaService *TencentCaptchaService,
 	aliyunCaptchaService *AliyunCaptchaService,
 	emailQueueService *EmailQueueService,
-	defaultSubAssigner DefaultSubscriptionAssigner,
 	userPlatformQuotaRepo UserPlatformQuotaRepository,
 ) *AuthService {
 	svc := NewAuthService(
@@ -76,7 +74,6 @@ func ProvideAuthService(
 		emailService,
 		turnstileService,
 		emailQueueService,
-		defaultSubAssigner,
 		userPlatformQuotaRepo,
 	)
 	svc.SetTencentCaptchaService(tencentCaptchaService)
@@ -885,7 +882,6 @@ var ProviderSet = wire.NewSet(
 	NewTencentCaptchaService,
 	NewAliyunCaptchaService,
 	NewSubscriptionService,
-	wire.Bind(new(DefaultSubscriptionAssigner), new(*SubscriptionService)),
 	ProvideConcurrencyService,
 	ProvideUserMessageQueueService,
 	NewUsageRecordWorkerPool,

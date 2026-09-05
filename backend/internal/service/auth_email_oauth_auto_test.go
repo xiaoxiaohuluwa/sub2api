@@ -39,7 +39,6 @@ func newEmailOAuthAutoAuthService(
 		nil, // emailService
 		nil, // turnstileService
 		nil, // emailQueueService
-		nil, // defaultSubAssigner — nil, assignSubscriptions early return
 		quotaRepo,
 	)
 }

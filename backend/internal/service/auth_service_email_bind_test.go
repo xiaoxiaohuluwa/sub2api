@@ -26,47 +26,19 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-type emailBindDefaultSubAssignerStub struct {
-	calls []*service.AssignSubscriptionInput
-}
-
-func (s *emailBindDefaultSubAssignerStub) AssignOrExtendSubscription(
-	_ context.Context,
-	input *service.AssignSubscriptionInput,
-) (*service.UserSubscription, bool, error) {
-	cloned := *input
-	s.calls = append(s.calls, &cloned)
-	return &service.UserSubscription{UserID: input.UserID, GroupID: input.GroupID}, false, nil
-}
-
-type flakyEmailBindDefaultSubAssignerStub struct {
-	err   error
-	calls []*service.AssignSubscriptionInput
-}
-
-func (s *flakyEmailBindDefaultSubAssignerStub) AssignOrExtendSubscription(
-	_ context.Context,
-	input *service.AssignSubscriptionInput,
-) (*service.UserSubscription, bool, error) {
-	cloned := *input
-	s.calls = append(s.calls, &cloned)
-	return nil, false, s.err
-}
-
 func newAuthServiceForEmailBind(
 	t *testing.T,
 	settings map[string]string,
 	emailCache service.EmailCache,
-	defaultSubAssigner service.DefaultSubscriptionAssigner,
+	_ ...any,
 ) (*service.AuthService, service.UserRepository, *dbent.Client) {
-	return newAuthServiceForEmailBindWithRefreshCache(t, settings, emailCache, defaultSubAssigner, nil)
+	return newAuthServiceForEmailBindWithRefreshCache(t, settings, emailCache, nil)
 }
 
 func newAuthServiceForEmailBindWithRefreshCache(
 	t *testing.T,
 	settings map[string]string,
 	emailCache service.EmailCache,
-	defaultSubAssigner service.DefaultSubscriptionAssigner,
 	refreshTokenCache service.RefreshTokenCache,
 ) (*service.AuthService, service.UserRepository, *dbent.Client) {
 	t.Helper()
@@ -113,12 +85,11 @@ CREATE TABLE IF NOT EXISTS user_provider_default_grants (
 		emailSvc = service.NewEmailService(settingRepo, emailCache)
 	}
 
-	svc := service.NewAuthService(client, repo, nil, refreshTokenCache, cfg, settingSvc, emailSvc, nil, nil, nil, defaultSubAssigner, nil, nil)
+	svc := service.NewAuthService(client, repo, refreshTokenCache, cfg, settingSvc, emailSvc, nil, nil, nil)
 	return svc, repo, client
 }
 
 func TestAuthServiceBindEmailIdentity_UpdatesEmailAndAppliesFirstBindDefaults(t *testing.T) {
-	assigner := &emailBindDefaultSubAssignerStub{}
 	cache := &emailBindCacheStub{
 		data: &service.VerificationCodeData{
 			Code:      "123456",
@@ -129,9 +100,8 @@ func TestAuthServiceBindEmailIdentity_UpdatesEmailAndAppliesFirstBindDefaults(t 
 	svc, _, client := newAuthServiceForEmailBind(t, map[string]string{
 		service.SettingKeyAuthSourceDefaultEmailBalance:          "8.5",
 		service.SettingKeyAuthSourceDefaultEmailConcurrency:      "4",
-		service.SettingKeyAuthSourceDefaultEmailSubscriptions:    `[{"group_id":11,"validity_days":30}]`,
 		service.SettingKeyAuthSourceDefaultEmailGrantOnFirstBind: "true",
-	}, cache, assigner)
+	}, cache)
 
 	ctx := context.Background()
 	user, err := client.User.Create().
@@ -168,10 +138,6 @@ func TestAuthServiceBindEmailIdentity_UpdatesEmailAndAppliesFirstBindDefaults(t 
 	require.NoError(t, err)
 	require.Equal(t, 1, identityCount)
 
-	require.Len(t, assigner.calls, 1)
-	require.Equal(t, user.ID, assigner.calls[0].UserID)
-	require.Equal(t, int64(11), assigner.calls[0].GroupID)
-	require.Equal(t, 30, assigner.calls[0].ValidityDays)
 	require.Equal(t, 1, countProviderGrantRecords(t, client, user.ID, "email", "first_bind"))
 }
 
@@ -354,62 +320,6 @@ func TestAuthServiceBindEmailIdentity_RejectsNewAliasWhenAnotherUserSharesCurren
 	require.Equal(t, "inbox+own@gmail.com", storedUser.Email)
 }
 
-func TestAuthServiceBindEmailIdentity_RollsBackWhenFirstBindDefaultsFail(t *testing.T) {
-	assigner := &flakyEmailBindDefaultSubAssignerStub{err: errors.New("temporary assign failure")}
-	cache := &emailBindCacheStub{
-		data: &service.VerificationCodeData{
-			Code:      "123456",
-			CreatedAt: time.Now().UTC(),
-			ExpiresAt: time.Now().UTC().Add(10 * time.Minute),
-		},
-	}
-	svc, _, client := newAuthServiceForEmailBind(t, map[string]string{
-		service.SettingKeyAuthSourceDefaultEmailBalance:          "8.5",
-		service.SettingKeyAuthSourceDefaultEmailConcurrency:      "4",
-		service.SettingKeyAuthSourceDefaultEmailSubscriptions:    `[{"group_id":11,"validity_days":30}]`,
-		service.SettingKeyAuthSourceDefaultEmailGrantOnFirstBind: "true",
-	}, cache, assigner)
-
-	ctx := context.Background()
-	originalEmail := "legacy-rollback" + service.LinuxDoConnectSyntheticEmailDomain
-	user, err := client.User.Create().
-		SetEmail(originalEmail).
-		SetUsername("legacy-rollback").
-		SetPasswordHash("old-hash").
-		SetBalance(2.5).
-		SetConcurrency(1).
-		SetRole(service.RoleUser).
-		SetStatus(service.StatusActive).
-		Save(ctx)
-	require.NoError(t, err)
-
-	updatedUser, err := svc.BindEmailIdentity(ctx, user.ID, "rollback@example.com", "123456", "new-password")
-	require.ErrorContains(t, err, "apply email first bind defaults")
-	require.ErrorContains(t, err, "temporary assign failure")
-	require.Nil(t, updatedUser)
-
-	storedUser, err := client.User.Get(ctx, user.ID)
-	require.NoError(t, err)
-	require.Equal(t, originalEmail, storedUser.Email)
-	require.Equal(t, "old-hash", storedUser.PasswordHash)
-	require.Equal(t, 2.5, storedUser.Balance)
-	require.Equal(t, 1, storedUser.Concurrency)
-
-	identityCount, err := client.AuthIdentity.Query().
-		Where(
-			authidentity.UserIDEQ(user.ID),
-			authidentity.ProviderTypeEQ("email"),
-			authidentity.ProviderKeyEQ("email"),
-			authidentity.ProviderSubjectEQ("rollback@example.com"),
-		).
-		Count(ctx)
-	require.NoError(t, err)
-	require.Equal(t, 0, identityCount)
-
-	require.Len(t, assigner.calls, 1)
-	require.Equal(t, 0, countProviderGrantRecords(t, client, user.ID, "email", "first_bind"))
-}
-
 func TestAuthServiceBindEmailIdentity_RejectsReservedEmail(t *testing.T) {
 	cache := &emailBindCacheStub{
 		data: &service.VerificationCodeData{
@@ -438,7 +348,6 @@ func TestAuthServiceBindEmailIdentity_RejectsReservedEmail(t *testing.T) {
 }
 
 func TestAuthServiceBindEmailIdentity_ReplacesBoundEmailAndSkipsFirstBindDefaults(t *testing.T) {
-	assigner := &emailBindDefaultSubAssignerStub{}
 	cache := &emailBindCacheStub{
 		data: &service.VerificationCodeData{
 			Code:      "123456",
@@ -449,9 +358,8 @@ func TestAuthServiceBindEmailIdentity_ReplacesBoundEmailAndSkipsFirstBindDefault
 	svc, _, client := newAuthServiceForEmailBind(t, map[string]string{
 		service.SettingKeyAuthSourceDefaultEmailBalance:          "8.5",
 		service.SettingKeyAuthSourceDefaultEmailConcurrency:      "4",
-		service.SettingKeyAuthSourceDefaultEmailSubscriptions:    `[{"group_id":11,"validity_days":30}]`,
 		service.SettingKeyAuthSourceDefaultEmailGrantOnFirstBind: "true",
-	}, cache, assigner)
+	}, cache)
 
 	ctx := context.Background()
 	hashedPassword, err := svc.HashPassword("current-password")
@@ -510,7 +418,6 @@ func TestAuthServiceBindEmailIdentity_ReplacesBoundEmailAndSkipsFirstBindDefault
 	require.NoError(t, err)
 	require.Equal(t, 0, oldIdentityCount)
 
-	require.Empty(t, assigner.calls)
 	require.Equal(t, 0, countProviderGrantRecords(t, client, user.ID, "email", "first_bind"))
 }
 
@@ -607,7 +514,7 @@ func TestAuthServiceBindEmailIdentity_RevokesExistingAccessAndRefreshTokens(t *t
 		},
 	}
 	emailService := service.NewEmailService(nil, cache)
-	svc := service.NewAuthService(nil, userRepo, nil, refreshTokenCache, cfg, nil, emailService, nil, nil, nil, nil, nil, nil)
+	svc := service.NewAuthService(nil, userRepo, refreshTokenCache, cfg, nil, emailService, nil, nil, nil)
 
 	oldTokenPair, err := svc.GenerateTokenPair(ctx, &service.User{
 		ID:           41,
