@@ -642,4 +642,27 @@ export default {
     },
   },
 
+  memos: {
+    title: '备忘录',
+    description: '记录你的笔记和备忘',
+    create: '新建备忘',
+    edit: '编辑备忘',
+    empty: '还没有备忘录，点击下方按钮创建第一条',
+    pin: '置顶',
+    unpin: '取消置顶',
+    loadFailed: '加载备忘录失败',
+    saveFailed: '保存失败',
+    created: '备忘已创建',
+    updated: '备忘已更新',
+    deleted: '备忘已删除',
+    deleteFailed: '删除失败',
+    deleteConfirm: '确定删除「{title}」吗？',
+    form: {
+      titlePlaceholder: '标题',
+      contentPlaceholder: '在这里输入内容，支持 Markdown...',
+      pin: '置顶',
+      required: '标题和内容不能为空',
+    },
+  },
+
 }

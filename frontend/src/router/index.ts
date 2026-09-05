@@ -197,6 +197,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/memos',
+    name: 'Memos',
+    component: () => import('@/views/user/MemosView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Memos',
+      titleKey: 'memos.title',
+      descriptionKey: 'memos.description'
+    }
+  },
+  {
     path: '/batch-image',
     name: 'BatchImageGuide',
     alias: '/docs/batch-image',

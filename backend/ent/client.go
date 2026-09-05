@@ -30,6 +30,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/group"
 	"github.com/Wei-Shaw/sub2api/ent/idempotencyrecord"
 	"github.com/Wei-Shaw/sub2api/ent/identityadoptiondecision"
+	"github.com/Wei-Shaw/sub2api/ent/memo"
 	"github.com/Wei-Shaw/sub2api/ent/paymentauditlog"
 	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
 	"github.com/Wei-Shaw/sub2api/ent/paymentproviderinstance"
@@ -89,6 +90,8 @@ type Client struct {
 	IdempotencyRecord *IdempotencyRecordClient
 	// IdentityAdoptionDecision is the client for interacting with the IdentityAdoptionDecision builders.
 	IdentityAdoptionDecision *IdentityAdoptionDecisionClient
+	// Memo is the client for interacting with the Memo builders.
+	Memo *MemoClient
 	// PaymentAuditLog is the client for interacting with the PaymentAuditLog builders.
 	PaymentAuditLog *PaymentAuditLogClient
 	// PaymentOrder is the client for interacting with the PaymentOrder builders.
@@ -155,6 +158,7 @@ func (c *Client) init() {
 	c.Group = NewGroupClient(c.config)
 	c.IdempotencyRecord = NewIdempotencyRecordClient(c.config)
 	c.IdentityAdoptionDecision = NewIdentityAdoptionDecisionClient(c.config)
+	c.Memo = NewMemoClient(c.config)
 	c.PaymentAuditLog = NewPaymentAuditLogClient(c.config)
 	c.PaymentOrder = NewPaymentOrderClient(c.config)
 	c.PaymentProviderInstance = NewPaymentProviderInstanceClient(c.config)
@@ -282,6 +286,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Group:                    NewGroupClient(cfg),
 		IdempotencyRecord:        NewIdempotencyRecordClient(cfg),
 		IdentityAdoptionDecision: NewIdentityAdoptionDecisionClient(cfg),
+		Memo:                     NewMemoClient(cfg),
 		PaymentAuditLog:          NewPaymentAuditLogClient(cfg),
 		PaymentOrder:             NewPaymentOrderClient(cfg),
 		PaymentProviderInstance:  NewPaymentProviderInstanceClient(cfg),
@@ -336,6 +341,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Group:                    NewGroupClient(cfg),
 		IdempotencyRecord:        NewIdempotencyRecordClient(cfg),
 		IdentityAdoptionDecision: NewIdentityAdoptionDecisionClient(cfg),
+		Memo:                     NewMemoClient(cfg),
 		PaymentAuditLog:          NewPaymentAuditLogClient(cfg),
 		PaymentOrder:             NewPaymentOrderClient(cfg),
 		PaymentProviderInstance:  NewPaymentProviderInstanceClient(cfg),
@@ -388,7 +394,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.APIKey, c.Account, c.AccountGroup, c.Announcement, c.AnnouncementRead,
 		c.AuthIdentity, c.AuthIdentityChannel, c.BatchImageEvent, c.BatchImageItem,
 		c.BatchImageJob, c.CompositeModelRoute, c.ErrorPassthroughRule, c.Group,
-		c.IdempotencyRecord, c.IdentityAdoptionDecision, c.PaymentAuditLog,
+		c.IdempotencyRecord, c.IdentityAdoptionDecision, c.Memo, c.PaymentAuditLog,
 		c.PaymentOrder, c.PaymentProviderInstance, c.PendingAuthSession, c.PromoCode,
 		c.PromoCodeUsage, c.Proxy, c.RedeemCode, c.SecuritySecret, c.Setting,
 		c.SubscriptionPlan, c.TLSFingerprintProfile, c.UsageCleanupTask, c.UsageLog,
@@ -406,7 +412,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.APIKey, c.Account, c.AccountGroup, c.Announcement, c.AnnouncementRead,
 		c.AuthIdentity, c.AuthIdentityChannel, c.BatchImageEvent, c.BatchImageItem,
 		c.BatchImageJob, c.CompositeModelRoute, c.ErrorPassthroughRule, c.Group,
-		c.IdempotencyRecord, c.IdentityAdoptionDecision, c.PaymentAuditLog,
+		c.IdempotencyRecord, c.IdentityAdoptionDecision, c.Memo, c.PaymentAuditLog,
 		c.PaymentOrder, c.PaymentProviderInstance, c.PendingAuthSession, c.PromoCode,
 		c.PromoCodeUsage, c.Proxy, c.RedeemCode, c.SecuritySecret, c.Setting,
 		c.SubscriptionPlan, c.TLSFingerprintProfile, c.UsageCleanupTask, c.UsageLog,
@@ -450,6 +456,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.IdempotencyRecord.mutate(ctx, m)
 	case *IdentityAdoptionDecisionMutation:
 		return c.IdentityAdoptionDecision.mutate(ctx, m)
+	case *MemoMutation:
+		return c.Memo.mutate(ctx, m)
 	case *PaymentAuditLogMutation:
 		return c.PaymentAuditLog.mutate(ctx, m)
 	case *PaymentOrderMutation:
@@ -2910,6 +2918,139 @@ func (c *IdentityAdoptionDecisionClient) mutate(ctx context.Context, m *Identity
 		return (&IdentityAdoptionDecisionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown IdentityAdoptionDecision mutation op: %q", m.Op())
+	}
+}
+
+// MemoClient is a client for the Memo schema.
+type MemoClient struct {
+	config
+}
+
+// NewMemoClient returns a client for the Memo from the given config.
+func NewMemoClient(c config) *MemoClient {
+	return &MemoClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `memo.Hooks(f(g(h())))`.
+func (c *MemoClient) Use(hooks ...Hook) {
+	c.hooks.Memo = append(c.hooks.Memo, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `memo.Intercept(f(g(h())))`.
+func (c *MemoClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Memo = append(c.inters.Memo, interceptors...)
+}
+
+// Create returns a builder for creating a Memo entity.
+func (c *MemoClient) Create() *MemoCreate {
+	mutation := newMemoMutation(c.config, OpCreate)
+	return &MemoCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Memo entities.
+func (c *MemoClient) CreateBulk(builders ...*MemoCreate) *MemoCreateBulk {
+	return &MemoCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MemoClient) MapCreateBulk(slice any, setFunc func(*MemoCreate, int)) *MemoCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MemoCreateBulk{err: fmt.Errorf("calling to MemoClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MemoCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MemoCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Memo.
+func (c *MemoClient) Update() *MemoUpdate {
+	mutation := newMemoMutation(c.config, OpUpdate)
+	return &MemoUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MemoClient) UpdateOne(_m *Memo) *MemoUpdateOne {
+	mutation := newMemoMutation(c.config, OpUpdateOne, withMemo(_m))
+	return &MemoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MemoClient) UpdateOneID(id int64) *MemoUpdateOne {
+	mutation := newMemoMutation(c.config, OpUpdateOne, withMemoID(id))
+	return &MemoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Memo.
+func (c *MemoClient) Delete() *MemoDelete {
+	mutation := newMemoMutation(c.config, OpDelete)
+	return &MemoDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MemoClient) DeleteOne(_m *Memo) *MemoDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MemoClient) DeleteOneID(id int64) *MemoDeleteOne {
+	builder := c.Delete().Where(memo.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MemoDeleteOne{builder}
+}
+
+// Query returns a query builder for Memo.
+func (c *MemoClient) Query() *MemoQuery {
+	return &MemoQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMemo},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Memo entity by its id.
+func (c *MemoClient) Get(ctx context.Context, id int64) (*Memo, error) {
+	return c.Query().Where(memo.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MemoClient) GetX(ctx context.Context, id int64) *Memo {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *MemoClient) Hooks() []Hook {
+	return c.hooks.Memo
+}
+
+// Interceptors returns the client interceptors.
+func (c *MemoClient) Interceptors() []Interceptor {
+	return c.inters.Memo
+}
+
+func (c *MemoClient) mutate(ctx context.Context, m *MemoMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MemoCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MemoUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MemoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MemoDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Memo mutation op: %q", m.Op())
 	}
 }
 
@@ -6164,7 +6305,7 @@ type (
 		APIKey, Account, AccountGroup, Announcement, AnnouncementRead, AuthIdentity,
 		AuthIdentityChannel, BatchImageEvent, BatchImageItem, BatchImageJob,
 		CompositeModelRoute, ErrorPassthroughRule, Group, IdempotencyRecord,
-		IdentityAdoptionDecision, PaymentAuditLog, PaymentOrder,
+		IdentityAdoptionDecision, Memo, PaymentAuditLog, PaymentOrder,
 		PaymentProviderInstance, PendingAuthSession, PromoCode, PromoCodeUsage, Proxy,
 		RedeemCode, SecuritySecret, Setting, SubscriptionPlan, TLSFingerprintProfile,
 		UsageCleanupTask, UsageLog, User, UserAllowedGroup, UserAttributeDefinition,
@@ -6174,7 +6315,7 @@ type (
 		APIKey, Account, AccountGroup, Announcement, AnnouncementRead, AuthIdentity,
 		AuthIdentityChannel, BatchImageEvent, BatchImageItem, BatchImageJob,
 		CompositeModelRoute, ErrorPassthroughRule, Group, IdempotencyRecord,
-		IdentityAdoptionDecision, PaymentAuditLog, PaymentOrder,
+		IdentityAdoptionDecision, Memo, PaymentAuditLog, PaymentOrder,
 		PaymentProviderInstance, PendingAuthSession, PromoCode, PromoCodeUsage, Proxy,
 		RedeemCode, SecuritySecret, Setting, SubscriptionPlan, TLSFingerprintProfile,
 		UsageCleanupTask, UsageLog, User, UserAllowedGroup, UserAttributeDefinition,

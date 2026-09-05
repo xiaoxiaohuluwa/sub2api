@@ -107,5 +107,15 @@ func RegisterUserRoutes(
 			announcements.GET("", h.Announcement.List)
 			announcements.POST("/:id/read", h.Announcement.MarkRead)
 		}
+
+		// 备忘录（用户个人笔记）
+		memos := authenticated.Group("/memos")
+		{
+			memos.GET("", h.Memo.List)
+			memos.POST("", h.Memo.Create)
+			memos.GET("/:id", h.Memo.Get)
+			memos.PUT("/:id", h.Memo.Update)
+			memos.DELETE("/:id", h.Memo.Delete)
+		}
 	}
 }

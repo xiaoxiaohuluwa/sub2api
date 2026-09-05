@@ -912,6 +912,34 @@ var (
 			},
 		},
 	}
+	// MemosColumns holds the columns for the "memos" table.
+	MemosColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "user_id", Type: field.TypeInt64},
+		{Name: "title", Type: field.TypeString, Size: 200},
+		{Name: "content", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "pinned", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+	}
+	// MemosTable holds the schema information for the "memos" table.
+	MemosTable = &schema.Table{
+		Name:       "memos",
+		Columns:    MemosColumns,
+		PrimaryKey: []*schema.Column{MemosColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "memo_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{MemosColumns[1]},
+			},
+			{
+				Name:    "memo_pinned_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{MemosColumns[4], MemosColumns[6]},
+			},
+		},
+	}
 	// PaymentAuditLogsColumns holds the columns for the "payment_audit_logs" table.
 	PaymentAuditLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1918,6 +1946,7 @@ var (
 		GroupsTable,
 		IdempotencyRecordsTable,
 		IdentityAdoptionDecisionsTable,
+		MemosTable,
 		PaymentAuditLogsTable,
 		PaymentOrdersTable,
 		PaymentProviderInstancesTable,
@@ -1999,6 +2028,9 @@ func init() {
 	IdentityAdoptionDecisionsTable.ForeignKeys[1].RefTable = PendingAuthSessionsTable
 	IdentityAdoptionDecisionsTable.Annotation = &entsql.Annotation{
 		Table: "identity_adoption_decisions",
+	}
+	MemosTable.Annotation = &entsql.Annotation{
+		Table: "memos",
 	}
 	PaymentAuditLogsTable.Annotation = &entsql.Annotation{
 		Table: "payment_audit_logs",

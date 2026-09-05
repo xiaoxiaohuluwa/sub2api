@@ -20,6 +20,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/group"
 	"github.com/Wei-Shaw/sub2api/ent/idempotencyrecord"
 	"github.com/Wei-Shaw/sub2api/ent/identityadoptiondecision"
+	"github.com/Wei-Shaw/sub2api/ent/memo"
 	"github.com/Wei-Shaw/sub2api/ent/paymentauditlog"
 	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
 	"github.com/Wei-Shaw/sub2api/ent/paymentproviderinstance"
@@ -1021,6 +1022,44 @@ func init() {
 	identityadoptiondecisionDescDecidedAt := identityadoptiondecisionFields[4].Descriptor()
 	// identityadoptiondecision.DefaultDecidedAt holds the default value on creation for the decided_at field.
 	identityadoptiondecision.DefaultDecidedAt = identityadoptiondecisionDescDecidedAt.Default.(func() time.Time)
+	memoFields := schema.Memo{}.Fields()
+	_ = memoFields
+	// memoDescTitle is the schema descriptor for title field.
+	memoDescTitle := memoFields[1].Descriptor()
+	// memo.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	memo.TitleValidator = func() func(string) error {
+		validators := memoDescTitle.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(title string) error {
+			for _, fn := range fns {
+				if err := fn(title); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// memoDescContent is the schema descriptor for content field.
+	memoDescContent := memoFields[2].Descriptor()
+	// memo.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	memo.ContentValidator = memoDescContent.Validators[0].(func(string) error)
+	// memoDescPinned is the schema descriptor for pinned field.
+	memoDescPinned := memoFields[3].Descriptor()
+	// memo.DefaultPinned holds the default value on creation for the pinned field.
+	memo.DefaultPinned = memoDescPinned.Default.(bool)
+	// memoDescCreatedAt is the schema descriptor for created_at field.
+	memoDescCreatedAt := memoFields[4].Descriptor()
+	// memo.DefaultCreatedAt holds the default value on creation for the created_at field.
+	memo.DefaultCreatedAt = memoDescCreatedAt.Default.(func() time.Time)
+	// memoDescUpdatedAt is the schema descriptor for updated_at field.
+	memoDescUpdatedAt := memoFields[5].Descriptor()
+	// memo.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	memo.DefaultUpdatedAt = memoDescUpdatedAt.Default.(func() time.Time)
+	// memo.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	memo.UpdateDefaultUpdatedAt = memoDescUpdatedAt.UpdateDefault.(func() time.Time)
 	paymentauditlogFields := schema.PaymentAuditLog{}.Fields()
 	_ = paymentauditlogFields
 	// paymentauditlogDescOrderID is the schema descriptor for order_id field.

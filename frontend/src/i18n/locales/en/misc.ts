@@ -618,4 +618,27 @@ export default {
     },
   },
 
+  memos: {
+    title: 'Memos',
+    description: 'Your notes and memos',
+    create: 'New Memo',
+    edit: 'Edit Memo',
+    empty: 'No memos yet. Create your first one below.',
+    pin: 'Pin',
+    unpin: 'Unpin',
+    loadFailed: 'Failed to load memos',
+    saveFailed: 'Save failed',
+    created: 'Memo created',
+    updated: 'Memo updated',
+    deleted: 'Memo deleted',
+    deleteFailed: 'Delete failed',
+    deleteConfirm: 'Delete "{title}"?',
+    form: {
+      titlePlaceholder: 'Title',
+      contentPlaceholder: 'Type your content here. Markdown supported...',
+      pin: 'Pin to top',
+      required: 'Title and content are required',
+    },
+  },
+
 }
