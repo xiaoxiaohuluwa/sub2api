@@ -167,8 +167,7 @@ func TestSettingHandler_AuthSourcePlatformQuotas_PutGetRoundTrip(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	repo := &settingHandlerRepoStub{
 		values: map[string]string{
-			service.SettingKeyPromoCodeEnabled: "true",
-		},
+			},
 	}
 	svc := service.NewSettingService(repo, &config.Config{Default: config.DefaultConfig{UserConcurrency: 5}})
 	handler := NewSettingHandler(svc, nil, nil, nil, nil, nil, nil)

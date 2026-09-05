@@ -82,8 +82,6 @@ type AuthService struct {
 	tencentCaptchaService *TencentCaptchaService
 	aliyunCaptchaService  *AliyunCaptchaService
 	emailQueueService     *EmailQueueService
-	promoService          *PromoService
-	affiliateService      *AffiliateService
 	defaultSubAssigner    DefaultSubscriptionAssigner
 	userPlatformQuotaRepo UserPlatformQuotaRepository
 }
@@ -117,9 +115,7 @@ func NewAuthService(
 	emailService *EmailService,
 	turnstileService *TurnstileService,
 	emailQueueService *EmailQueueService,
-	promoService *PromoService,
 	defaultSubAssigner DefaultSubscriptionAssigner,
-	affiliateService *AffiliateService,
 	userPlatformQuotaRepo UserPlatformQuotaRepository,
 ) *AuthService {
 	return &AuthService{
@@ -132,8 +128,6 @@ func NewAuthService(
 		emailService:          emailService,
 		turnstileService:      turnstileService,
 		emailQueueService:     emailQueueService,
-		promoService:          promoService,
-		affiliateService:      affiliateService,
 		defaultSubAssigner:    defaultSubAssigner,
 		userPlatformQuotaRepo: userPlatformQuotaRepo,
 	}
@@ -441,24 +435,12 @@ func (s *AuthService) canBypassRegistrationDisabledForOAuth(ctx context.Context,
 
 // LoginOrRegisterOAuthWithTokenPair 用于第三方 OAuth/SSO 登录，返回完整的 TokenPair。
 // 与 LoginOrRegisterOAuth 功能相同，但返回 TokenPair 而非单个 token。
-// invitationCode 仅在邀请码注册模式下新用户注册时使用；已有账号登录时忽略。
-// affiliateCode 为兼容旧版 OAuth 客户端保留；注册流程会忽略该值。
-// signupSource 标识来源渠道（"dingtalk"/"linuxdo"/"wechat"/"oidc" 等），仅用于豁免检查。
-func (s *AuthService) LoginOrRegisterOAuthWithTokenPair(ctx context.Context, email, username, invitationCode, affiliateCode, signupSource string) (*TokenPair, *User, error) {
-	return s.loginOrRegisterOAuthWithTokenPair(ctx, email, username, invitationCode, affiliateCode, "", signupSource)
+// LoginOrRegisterOAuthWithTokenPair registers or logs in an OAuth user.
+func (s *AuthService) LoginOrRegisterOAuthWithTokenPair(ctx context.Context, email, username, invitationCode, signupSource string) (*TokenPair, *User, error) {
+	return s.loginOrRegisterOAuthWithTokenPair(ctx, email, username, invitationCode, signupSource)
 }
 
-// LoginOrRegisterOAuthWithTokenPairAndPromoCode keeps promoCode for backward
-// compatibility with OAuth clients. Registration ignores the value.
-func (s *AuthService) LoginOrRegisterOAuthWithTokenPairAndPromoCode(ctx context.Context, email, username, invitationCode, affiliateCode, promoCode, signupSource string) (*TokenPair, *User, error) {
-	return s.loginOrRegisterOAuthWithTokenPair(ctx, email, username, invitationCode, affiliateCode, promoCode, signupSource)
-}
-
-func (s *AuthService) loginOrRegisterOAuthWithTokenPair(ctx context.Context, email, username, invitationCode, affiliateCode, promoCode, signupSource string) (*TokenPair, *User, error) {
-	// Legacy OAuth clients still send these fields. Billing features no longer
-	// consume them during account creation.
-	_ = affiliateCode
-	_ = promoCode
+func (s *AuthService) loginOrRegisterOAuthWithTokenPair(ctx context.Context, email, username, invitationCode, signupSource string) (*TokenPair, *User, error) {
 
 	// 检查 refreshTokenCache 是否可用
 	if s.refreshTokenCache == nil {
@@ -617,13 +599,7 @@ func (s *AuthService) loginOrRegisterOAuthWithTokenPair(ctx context.Context, ema
 	return tokenPair, user, nil
 }
 
-func (s *AuthService) ApplyOAuthSignupPromoCode(ctx context.Context, userID int64, promoCode string) {
-	// Kept for pending OAuth flow compatibility. Promo codes no longer alter
-	// balances or subscriptions during registration.
-	_ = ctx
-	_ = userID
-	_ = promoCode
-}
+
 
 func (s *AuthService) assignSubscriptions(ctx context.Context, userID int64, items []DefaultSubscriptionSetting, notes string) {
 	if s.settingService == nil || s.defaultSubAssigner == nil || userID <= 0 {

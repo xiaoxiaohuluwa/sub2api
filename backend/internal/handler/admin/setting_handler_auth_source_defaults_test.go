@@ -128,12 +128,11 @@ func TestSettingHandler_GetSettings_InjectsAuthSourceDefaults(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	repo := &settingHandlerRepoStub{
 		values: map[string]string{
-			service.SettingKeyRegistrationEnabled:                 "true",
-			service.SettingKeyPromoCodeEnabled:                    "true",
-			service.SettingKeyAuthSourceDefaultEmailBalance:       "9.5",
-			service.SettingKeyAuthSourceDefaultEmailConcurrency:   "8",
-			service.SettingKeyAuthSourceDefaultEmailSubscriptions: `[{"group_id":31,"validity_days":15}]`,
-			service.SettingKeyForceEmailOnThirdPartySignup:        "true",
+		service.SettingKeyRegistrationEnabled:                 "true",
+		service.SettingKeyAuthSourceDefaultEmailBalance:       "9.5",
+		service.SettingKeyAuthSourceDefaultEmailConcurrency:   "8",
+		service.SettingKeyAuthSourceDefaultEmailSubscriptions: `[{"group_id":31,"validity_days":15}]`,
+		service.SettingKeyForceEmailOnThirdPartySignup:        "true",
 		},
 	}
 	svc := service.NewSettingService(repo, &config.Config{Default: config.DefaultConfig{UserConcurrency: 5}})
@@ -163,9 +162,8 @@ func TestSettingHandler_UpdateSettings_PreservesOmittedAuthSourceDefaults(t *tes
 	gin.SetMode(gin.TestMode)
 	repo := &settingHandlerRepoStub{
 		values: map[string]string{
-			service.SettingKeyRegistrationEnabled:                    "false",
-			service.SettingKeyPromoCodeEnabled:                       "true",
-			service.SettingKeyAuthSourceDefaultEmailBalance:          "9.5",
+		service.SettingKeyRegistrationEnabled:                    "false",
+		service.SettingKeyAuthSourceDefaultEmailBalance:          "9.5",
 			service.SettingKeyAuthSourceDefaultEmailConcurrency:      "8",
 			service.SettingKeyAuthSourceDefaultEmailSubscriptions:    `[{"group_id":31,"validity_days":15}]`,
 			service.SettingKeyAuthSourceDefaultEmailGrantOnSignup:    "true",
@@ -178,7 +176,6 @@ func TestSettingHandler_UpdateSettings_PreservesOmittedAuthSourceDefaults(t *tes
 
 	body := map[string]any{
 		"registration_enabled":              true,
-		"promo_code_enabled":                true,
 		"auth_source_default_email_balance": 12.75,
 	}
 	rawBody, err := json.Marshal(body)
@@ -210,14 +207,12 @@ func TestSettingHandler_UpdateSettings_PersistsPaymentVisibleMethodsAndAdvancedS
 	gin.SetMode(gin.TestMode)
 	repo := &settingHandlerRepoStub{
 		values: map[string]string{
-			service.SettingKeyPromoCodeEnabled: "true",
-		},
+			},
 	}
 	svc := service.NewSettingService(repo, &config.Config{Default: config.DefaultConfig{UserConcurrency: 5}})
 	handler := NewSettingHandler(svc, nil, nil, nil, nil, nil, nil)
 
 	body := map[string]any{
-		"promo_code_enabled":                                      true,
 		"payment_visible_method_alipay_source":                    "easypay",
 		"payment_visible_method_wxpay_source":                     "wxpay",
 		"payment_visible_method_alipay_enabled":                   true,
@@ -262,8 +257,7 @@ func TestSettingHandler_UpdateSettings_PreservesLegacyBlankPaymentVisibleMethodS
 	gin.SetMode(gin.TestMode)
 	repo := &settingHandlerRepoStub{
 		values: map[string]string{
-			service.SettingKeyPromoCodeEnabled:               "true",
-			service.SettingPaymentVisibleMethodAlipayEnabled: "true",
+		service.SettingPaymentVisibleMethodAlipayEnabled: "true",
 			service.SettingPaymentVisibleMethodAlipaySource:  "",
 			service.SettingPaymentVisibleMethodWxpayEnabled:  "false",
 			service.SettingPaymentVisibleMethodWxpaySource:   "",
@@ -273,7 +267,6 @@ func TestSettingHandler_UpdateSettings_PreservesLegacyBlankPaymentVisibleMethodS
 	handler := NewSettingHandler(svc, nil, nil, nil, nil, nil, nil)
 
 	body := map[string]any{
-		"promo_code_enabled": false,
 	}
 	rawBody, err := json.Marshal(body)
 	require.NoError(t, err)
@@ -294,8 +287,7 @@ func TestSettingHandler_UpdateSettings_PersistsExplicitFalseOIDCCompatibilityFla
 	gin.SetMode(gin.TestMode)
 	repo := &settingHandlerRepoStub{
 		values: map[string]string{
-			service.SettingKeyPromoCodeEnabled:               "true",
-			service.SettingKeyOIDCConnectEnabled:             "true",
+		service.SettingKeyOIDCConnectEnabled:             "true",
 			service.SettingKeyOIDCConnectProviderName:        "OIDC",
 			service.SettingKeyOIDCConnectClientID:            "oidc-client",
 			service.SettingKeyOIDCConnectClientSecret:        "oidc-secret",
@@ -318,7 +310,6 @@ func TestSettingHandler_UpdateSettings_PersistsExplicitFalseOIDCCompatibilityFla
 	handler := NewSettingHandler(svc, nil, nil, nil, nil, nil, nil)
 
 	body := map[string]any{
-		"promo_code_enabled":                true,
 		"oidc_connect_enabled":              true,
 		"oidc_connect_use_pkce":             false,
 		"oidc_connect_validate_id_token":    false,
@@ -350,8 +341,7 @@ func TestSettingHandler_UpdateSettings_DoesNotSolidifyImplicitOIDCSecurityDefaul
 	gin.SetMode(gin.TestMode)
 	repo := &settingHandlerRepoStub{
 		values: map[string]string{
-			service.SettingKeyPromoCodeEnabled:                "true",
-			service.SettingKeyOIDCConnectEnabled:              "true",
+		service.SettingKeyOIDCConnectEnabled:              "true",
 			service.SettingKeyOIDCConnectProviderName:         "OIDC",
 			service.SettingKeyOIDCConnectClientID:             "oidc-client",
 			service.SettingKeyOIDCConnectClientSecret:         "oidc-secret",
@@ -397,7 +387,6 @@ func TestSettingHandler_UpdateSettings_DoesNotSolidifyImplicitOIDCSecurityDefaul
 	handler := NewSettingHandler(svc, nil, nil, nil, nil, nil, nil)
 
 	body := map[string]any{
-		"promo_code_enabled":   true,
 		"oidc_connect_enabled": true,
 	}
 	rawBody, err := json.Marshal(body)
@@ -419,14 +408,12 @@ func TestSettingHandler_UpdateSettings_RejectsInvalidPaymentVisibleMethodSource(
 	gin.SetMode(gin.TestMode)
 	repo := &settingHandlerRepoStub{
 		values: map[string]string{
-			service.SettingKeyPromoCodeEnabled: "true",
-		},
+			},
 	}
 	svc := service.NewSettingService(repo, &config.Config{Default: config.DefaultConfig{UserConcurrency: 5}})
 	handler := NewSettingHandler(svc, nil, nil, nil, nil, nil, nil)
 
 	body := map[string]any{
-		"promo_code_enabled":                   true,
 		"payment_visible_method_alipay_source": "bogus",
 	}
 	rawBody, err := json.Marshal(body)
@@ -447,9 +434,8 @@ func TestSettingHandler_UpdateSettings_DoesNotPersistPartialSystemSettingsWhenAu
 	gin.SetMode(gin.TestMode)
 	repo := &failingAuthSourceSettingsRepoStub{
 		values: map[string]string{
-			service.SettingKeyRegistrationEnabled:                 "false",
-			service.SettingKeyPromoCodeEnabled:                    "true",
-			service.SettingKeyAuthSourceDefaultEmailBalance:       "9.5",
+		service.SettingKeyRegistrationEnabled:                 "false",
+		service.SettingKeyAuthSourceDefaultEmailBalance:       "9.5",
 			service.SettingKeyAuthSourceDefaultEmailConcurrency:   "8",
 			service.SettingKeyAuthSourceDefaultEmailSubscriptions: `[{"group_id":31,"validity_days":15}]`,
 		},
@@ -460,7 +446,6 @@ func TestSettingHandler_UpdateSettings_DoesNotPersistPartialSystemSettingsWhenAu
 
 	body := map[string]any{
 		"registration_enabled":              true,
-		"promo_code_enabled":                true,
 		"auth_source_default_email_balance": 12.75,
 	}
 	rawBody, err := json.Marshal(body)

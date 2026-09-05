@@ -26,38 +26,30 @@ type EmailOAuthIdentityInput struct {
 }
 
 func (s *AuthService) LoginOrRegisterVerifiedEmailOAuth(ctx context.Context, input EmailOAuthIdentityInput) (*TokenPair, *User, error) {
-	return s.loginOrRegisterVerifiedEmailOAuth(ctx, input, "", "", "")
+	return s.loginOrRegisterVerifiedEmailOAuth(ctx, input, "")
 }
 
 func (s *AuthService) LoginOrRegisterVerifiedEmailOAuthWithInvitation(
 	ctx context.Context,
 	input EmailOAuthIdentityInput,
 	invitationCode string,
-	affiliateCode string,
 ) (*TokenPair, *User, error) {
-	return s.loginOrRegisterVerifiedEmailOAuth(ctx, input, invitationCode, affiliateCode, "")
+	return s.loginOrRegisterVerifiedEmailOAuth(ctx, input, invitationCode)
 }
 
 func (s *AuthService) LoginOrRegisterVerifiedEmailOAuthWithSignupCodes(
 	ctx context.Context,
 	input EmailOAuthIdentityInput,
 	invitationCode string,
-	affiliateCode string,
-	promoCode string,
 ) (*TokenPair, *User, error) {
-	return s.loginOrRegisterVerifiedEmailOAuth(ctx, input, invitationCode, affiliateCode, promoCode)
+	return s.loginOrRegisterVerifiedEmailOAuth(ctx, input, invitationCode)
 }
 
 func (s *AuthService) loginOrRegisterVerifiedEmailOAuth(
 	ctx context.Context,
 	input EmailOAuthIdentityInput,
 	invitationCode string,
-	affiliateCode string,
-	promoCode string,
 ) (*TokenPair, *User, error) {
-	// OAuth clients may still supply promo_code. Account creation ignores it.
-	_ = promoCode
-
 	if s == nil || s.userRepo == nil || s.entClient == nil {
 		return nil, nil, ErrServiceUnavailable
 	}
@@ -106,7 +98,7 @@ func (s *AuthService) loginOrRegisterVerifiedEmailOAuth(
 		user, err = s.userRepo.GetByEmail(ctx, email)
 		if err != nil {
 			if errors.Is(err, ErrUserNotFound) {
-				user, err = s.createEmailOAuthUser(ctx, email, input.Username, providerType, invitationCode, affiliateCode)
+				user, err = s.createEmailOAuthUser(ctx, email, input.Username, providerType, invitationCode)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -155,10 +147,7 @@ func (s *AuthService) loginOrRegisterVerifiedEmailOAuth(
 	return tokenPair, user, nil
 }
 
-func (s *AuthService) createEmailOAuthUser(ctx context.Context, email, username, providerType, invitationCode, affiliateCode string) (*User, error) {
-	// OAuth clients may still supply aff_code. Account creation ignores it.
-	_ = affiliateCode
-
+func (s *AuthService) createEmailOAuthUser(ctx context.Context, email, username, providerType, invitationCode string) (*User, error) {
 	if s.settingService == nil || !s.settingService.IsRegistrationEnabled(ctx) {
 		return nil, ErrRegDisabled
 	}
