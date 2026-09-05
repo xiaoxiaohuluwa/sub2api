@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -483,7 +482,6 @@ func (h *AuthHandler) wechatPaymentResumeService() *service.PaymentResumeService
 }
 
 type completeWeChatOAuthRequest struct {
-	InvitationCode   string `json:"invitation_code" binding:"required"`
 	AffCode          string `json:"aff_code,omitempty"`
 	AdoptDisplayName *bool  `json:"adopt_display_name,omitempty"`
 	AdoptAvatar      *bool  `json:"adopt_avatar,omitempty"`
@@ -555,7 +553,6 @@ func (h *AuthHandler) CompleteWeChatOAuthRegistration(c *gin.Context) {
 		c.Request.Context(),
 		email,
 		username,
-		req.InvitationCode,
 		"wechat",
 	)
 	if err != nil {
@@ -608,11 +605,7 @@ func (h *AuthHandler) createWeChatPendingSession(
 		"redirect": redirectTo,
 	}
 	if authErr != nil {
-		if errors.Is(authErr, service.ErrOAuthInvitationRequired) {
-			completionResponse["error"] = "invitation_required"
-		} else {
-			return authErr
-		}
+		return authErr
 	} else if tokenPair != nil {
 		completionResponse["access_token"] = tokenPair.AccessToken
 		completionResponse["refresh_token"] = tokenPair.RefreshToken

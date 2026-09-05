@@ -21,7 +21,6 @@ type AdminHandlers struct {
 	GrokOAuth              *admin.GrokOAuthHandler
 	CNProvider             *admin.CNProviderHandler
 	Proxy                  *admin.ProxyHandler
-	Redeem                 *admin.RedeemHandler
 	Setting                *admin.SettingHandler
 	Ops                    *admin.OpsHandler
 	System                 *admin.SystemHandler
@@ -46,7 +45,6 @@ type Handlers struct {
 	User             *UserHandler
 	APIKey           *APIKeyHandler
 	Usage            *UsageHandler
-	Redeem           *RedeemHandler
 	Subscription     *SubscriptionHandler
 	Announcement     *AnnouncementHandler
 	Memo             *MemoHandler

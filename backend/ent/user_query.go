@@ -21,7 +21,6 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/pendingauthsession"
 	"github.com/Wei-Shaw/sub2api/ent/predicate"
 	"github.com/Wei-Shaw/sub2api/ent/promocodeusage"
-	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/usagelog"
 	"github.com/Wei-Shaw/sub2api/ent/user"
 	"github.com/Wei-Shaw/sub2api/ent/userallowedgroup"
@@ -38,7 +37,6 @@ type UserQuery struct {
 	inters                    []Interceptor
 	predicates                []predicate.User
 	withAPIKeys               *APIKeyQuery
-	withRedeemCodes           *RedeemCodeQuery
 	withSubscriptions         *UserSubscriptionQuery
 	withAssignedSubscriptions *UserSubscriptionQuery
 	withAnnouncementReads     *AnnouncementReadQuery
@@ -103,28 +101,6 @@ func (_q *UserQuery) QueryAPIKeys() *APIKeyQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(apikey.Table, apikey.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.APIKeysTable, user.APIKeysColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryRedeemCodes chains the current query on the "redeem_codes" edge.
-func (_q *UserQuery) QueryRedeemCodes() *RedeemCodeQuery {
-	query := (&RedeemCodeClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(redeemcode.Table, redeemcode.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.RedeemCodesTable, user.RedeemCodesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -589,7 +565,6 @@ func (_q *UserQuery) Clone() *UserQuery {
 		inters:                    append([]Interceptor{}, _q.inters...),
 		predicates:                append([]predicate.User{}, _q.predicates...),
 		withAPIKeys:               _q.withAPIKeys.Clone(),
-		withRedeemCodes:           _q.withRedeemCodes.Clone(),
 		withSubscriptions:         _q.withSubscriptions.Clone(),
 		withAssignedSubscriptions: _q.withAssignedSubscriptions.Clone(),
 		withAnnouncementReads:     _q.withAnnouncementReads.Clone(),
@@ -616,17 +591,6 @@ func (_q *UserQuery) WithAPIKeys(opts ...func(*APIKeyQuery)) *UserQuery {
 		opt(query)
 	}
 	_q.withAPIKeys = query
-	return _q
-}
-
-// WithRedeemCodes tells the query-builder to eager-load the nodes that are connected to
-// the "redeem_codes" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *UserQuery) WithRedeemCodes(opts ...func(*RedeemCodeQuery)) *UserQuery {
-	query := (&RedeemCodeClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withRedeemCodes = query
 	return _q
 }
 
@@ -840,9 +804,8 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [14]bool{
+		loadedTypes = [13]bool{
 			_q.withAPIKeys != nil,
-			_q.withRedeemCodes != nil,
 			_q.withSubscriptions != nil,
 			_q.withAssignedSubscriptions != nil,
 			_q.withAnnouncementReads != nil,
@@ -882,13 +845,6 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := _q.loadAPIKeys(ctx, query, nodes,
 			func(n *User) { n.Edges.APIKeys = []*APIKey{} },
 			func(n *User, e *APIKey) { n.Edges.APIKeys = append(n.Edges.APIKeys, e) }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withRedeemCodes; query != nil {
-		if err := _q.loadRedeemCodes(ctx, query, nodes,
-			func(n *User) { n.Edges.RedeemCodes = []*RedeemCode{} },
-			func(n *User, e *RedeemCode) { n.Edges.RedeemCodes = append(n.Edges.RedeemCodes, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1008,39 +964,6 @@ func (_q *UserQuery) loadAPIKeys(ctx context.Context, query *APIKeyQuery, nodes 
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (_q *UserQuery) loadRedeemCodes(ctx context.Context, query *RedeemCodeQuery, nodes []*User, init func(*User), assign func(*User, *RedeemCode)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int64]*User)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(redeemcode.FieldUsedBy)
-	}
-	query.Where(predicate.RedeemCode(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.RedeemCodesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.UsedBy
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "used_by" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "used_by" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

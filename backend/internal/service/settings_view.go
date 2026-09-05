@@ -18,7 +18,6 @@ type SystemSettings struct {
 	RegistrationEmailDomainQuotaEnabled bool // 白名单非空时放行非白名单域名限量注册（默认关闭）
 	PasswordResetEnabled                bool
 	FrontendURL                         string
-	InvitationCodeEnabled               bool
 	TotpEnabled                         bool // TOTP 双因素认证
 	PasskeyEnabled                      bool // Passkey 登录
 	SessionBindingEnabled               bool // 会话 IP/UA 绑定（变更即失效）
@@ -302,7 +301,6 @@ type PublicSettings struct {
 	RegistrationEmailSuffixWhitelist    []string
 	RegistrationEmailDomainQuotaEnabled bool
 	PasswordResetEnabled                bool
-	InvitationCodeEnabled               bool
 	TotpEnabled                         bool // TOTP 双因素认证
 	PasskeyEnabled                      bool
 	LoginAgreementEnabled               bool

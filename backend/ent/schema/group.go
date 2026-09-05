@@ -305,7 +305,6 @@ func (Group) Fields() []ent.Field {
 func (Group) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("api_keys", APIKey.Type),
-		edge.To("redeem_codes", RedeemCode.Type),
 		edge.To("subscriptions", UserSubscription.Type),
 		edge.To("usage_logs", UsageLog.Type),
 		edge.From("accounts", Account.Type).

@@ -603,7 +603,6 @@ func (h *AuthHandler) createOIDCOAuthChoicePendingSession(
 }
 
 type completeOIDCOAuthRequest struct {
-	InvitationCode   string `json:"invitation_code" binding:"required"`
 	AffCode          string `json:"aff_code,omitempty"`
 	AdoptDisplayName *bool  `json:"adopt_display_name,omitempty"`
 	AdoptAvatar      *bool  `json:"adopt_avatar,omitempty"`
@@ -692,7 +691,6 @@ func (h *AuthHandler) CompleteOIDCOAuthRegistration(c *gin.Context) {
 		c.Request.Context(),
 		email,
 		username,
-		req.InvitationCode,
 		"oidc",
 	)
 	if err != nil {
@@ -1236,9 +1234,6 @@ func (h *AuthHandler) tryOIDCVerifiedEmailFastPath(
 	if h.isForceEmailOnThirdPartySignup(ctx) {
 		return false
 	}
-	if h.settingSvc.IsInvitationCodeEnabled(ctx) {
-		return false
-	}
 	if err := h.ensureBackendModeAllowsNewUserLogin(ctx); err != nil {
 		log.Printf("[OIDC OAuth] verified-email fast path blocked by backend mode: reason=%s", infraerrors.Reason(err))
 		clearOAuthPendingSessionCookie(c, isRequestHTTPS(c))
@@ -1267,10 +1262,9 @@ func (h *AuthHandler) tryOIDCVerifiedEmailFastPath(
 		AvatarURL:        pendingSessionStringValue(upstreamClaims, "suggested_avatar_url"),
 		UpstreamMetadata: upstreamMetadata,
 	}
-	tokenPair, _, err := h.authService.LoginOrRegisterVerifiedEmailOAuthWithSignupCodes(
+	tokenPair, _, err := h.authService.LoginOrRegisterVerifiedEmailOAuth(
 		ctx,
 		input,
-		"",
 	)
 	if err != nil {
 		log.Printf("[OIDC OAuth] verified-email fast path skipped: reason=%s", infraerrors.Reason(err))

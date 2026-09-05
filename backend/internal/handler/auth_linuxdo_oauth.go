@@ -336,7 +336,6 @@ func (h *AuthHandler) LinuxDoOAuthCallback(c *gin.Context) {
 			c.Request.Context(),
 			email,
 			username,
-			"",
 			"linuxdo",
 		)
 		if err == nil {
@@ -367,10 +366,8 @@ func (h *AuthHandler) LinuxDoOAuthCallback(c *gin.Context) {
 			redirectOAuthTokenPair(c, frontendCallback, tokenPair, redirectTo)
 			return
 		}
-		if !errors.Is(err, service.ErrOAuthInvitationRequired) {
-			redirectOAuthError(c, frontendCallback, "session_error", infraerrors.Reason(err), infraerrors.Message(err))
-			return
-		}
+		redirectOAuthError(c, frontendCallback, "session_error", infraerrors.Reason(err), infraerrors.Message(err))
+		return
 	}
 	if err := h.createLinuxDoOAuthChoicePendingSession(
 		c,
@@ -498,7 +495,6 @@ func (h *AuthHandler) createLinuxDoOAuthChoicePendingSession(
 }
 
 type completeLinuxDoOAuthRequest struct {
-	InvitationCode   string `json:"invitation_code" binding:"required"`
 	AffCode          string `json:"aff_code,omitempty"`
 	AdoptDisplayName *bool  `json:"adopt_display_name,omitempty"`
 	AdoptAvatar      *bool  `json:"adopt_avatar,omitempty"`
@@ -587,7 +583,6 @@ func (h *AuthHandler) CompleteLinuxDoOAuthRegistration(c *gin.Context) {
 		c.Request.Context(),
 		email,
 		username,
-		req.InvitationCode,
 		"linuxdo",
 	)
 	if err != nil {

@@ -17,7 +17,6 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/enttest"
 	"github.com/Wei-Shaw/sub2api/ent/identityadoptiondecision"
 	"github.com/Wei-Shaw/sub2api/ent/pendingauthsession"
-	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	dbuser "github.com/Wei-Shaw/sub2api/ent/user"
 	"github.com/Wei-Shaw/sub2api/internal/config"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/pagination"
@@ -1535,14 +1534,6 @@ func TestCreateOIDCOAuthAccountRollsBackCreatedUserWhenBindingFails(t *testing.T
 		Save(ctx)
 	require.NoError(t, err)
 
-	invitation, err := client.RedeemCode.Create().
-		SetCode("INVITE123").
-		SetType(service.RedeemTypeInvitation).
-		SetStatus(service.StatusUnused).
-		SetValue(0).
-		Save(ctx)
-	require.NoError(t, err)
-
 	session, err := client.PendingAuthSession.Create().
 		SetSessionToken("create-account-conflict-session-token").
 		SetIntent("login").
@@ -1558,7 +1549,7 @@ func TestCreateOIDCOAuthAccountRollsBackCreatedUserWhenBindingFails(t *testing.T
 		Save(ctx)
 	require.NoError(t, err)
 
-	body := bytes.NewBufferString(`{"email":"fresh@example.com","verify_code":"246810","password":"secret-123","invitation_code":"INVITE123"}`)
+	body := bytes.NewBufferString(`{"email":"fresh@example.com","verify_code":"246810","password":"secret-123"}`)
 	recorder := httptest.NewRecorder()
 	ginCtx, _ := gin.CreateTestContext(recorder)
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/oauth/oidc/create-account", body)
@@ -1574,12 +1565,6 @@ func TestCreateOIDCOAuthAccountRollsBackCreatedUserWhenBindingFails(t *testing.T
 	userCount, err := client.User.Query().Where(dbuser.EmailEQ("fresh@example.com")).Count(ctx)
 	require.NoError(t, err)
 	require.Zero(t, userCount)
-
-	storedInvitation, err := client.RedeemCode.Get(ctx, invitation.ID)
-	require.NoError(t, err)
-	require.Equal(t, service.StatusUnused, storedInvitation.Status)
-	require.Nil(t, storedInvitation.UsedBy)
-	require.Nil(t, storedInvitation.UsedAt)
 
 	storedSession, err := client.PendingAuthSession.Get(ctx, session.ID)
 	require.NoError(t, err)
@@ -2380,7 +2365,6 @@ CREATE TABLE IF NOT EXISTS user_avatars (
 	}
 	settingValues := map[string]string{
 		service.SettingKeyRegistrationEnabled:              "true",
-		service.SettingKeyInvitationCodeEnabled:            boolSettingValue(options.invitationEnabled),
 		service.SettingKeyEmailVerifyEnabled:               boolSettingValue(options.emailVerifyEnabled),
 		service.SettingKeyRegistrationEmailSuffixWhitelist: "[]",
 	}
@@ -2392,7 +2376,6 @@ CREATE TABLE IF NOT EXISTS user_avatars (
 		client:  client,
 		options: options.userRepoOptions,
 	}
-	redeemRepo := &oauthPendingFlowRedeemCodeRepo{client: client}
 	var emailService *service.EmailService
 	if options.emailCache != nil {
 		emailService = service.NewEmailService(&oauthPendingFlowSettingRepoStub{
@@ -2404,7 +2387,6 @@ CREATE TABLE IF NOT EXISTS user_avatars (
 	authSvc := service.NewAuthService(
 		client,
 		userRepo,
-		redeemRepo,
 		&oauthPendingFlowRefreshTokenCacheStub{},
 		cfg,
 		settingSvc,
@@ -2599,123 +2581,6 @@ func (s *oauthPendingFlowRefreshTokenCacheStub) IsTokenInFamily(context.Context,
 	return false, nil
 }
 
-type oauthPendingFlowRedeemCodeRepo struct {
-	client *dbent.Client
-}
-
-func (r *oauthPendingFlowRedeemCodeRepo) Create(context.Context, *service.RedeemCode) error {
-	panic("unexpected Create call")
-}
-
-func (r *oauthPendingFlowRedeemCodeRepo) CreateBatch(context.Context, []service.RedeemCode) error {
-	panic("unexpected CreateBatch call")
-}
-
-func (r *oauthPendingFlowRedeemCodeRepo) GetByID(context.Context, int64) (*service.RedeemCode, error) {
-	panic("unexpected GetByID call")
-}
-
-func (r *oauthPendingFlowRedeemCodeRepo) GetByCode(ctx context.Context, code string) (*service.RedeemCode, error) {
-	entity, err := r.client.RedeemCode.Query().Where(redeemcode.CodeEQ(code)).Only(ctx)
-	if err != nil {
-		if dbent.IsNotFound(err) {
-			return nil, service.ErrRedeemCodeNotFound
-		}
-		return nil, err
-	}
-	notes := ""
-	if entity.Notes != nil {
-		notes = *entity.Notes
-	}
-	return &service.RedeemCode{
-		ID:           entity.ID,
-		Code:         entity.Code,
-		Type:         entity.Type,
-		Value:        entity.Value,
-		Status:       entity.Status,
-		UsedBy:       entity.UsedBy,
-		UsedAt:       entity.UsedAt,
-		Notes:        notes,
-		CreatedAt:    entity.CreatedAt,
-		GroupID:      entity.GroupID,
-		ValidityDays: entity.ValidityDays,
-	}, nil
-}
-
-func (r *oauthPendingFlowRedeemCodeRepo) Update(ctx context.Context, code *service.RedeemCode) error {
-	if code == nil {
-		return nil
-	}
-	update := r.client.RedeemCode.UpdateOneID(code.ID).
-		SetCode(code.Code).
-		SetType(code.Type).
-		SetValue(code.Value).
-		SetStatus(code.Status).
-		SetNotes(code.Notes).
-		SetValidityDays(code.ValidityDays)
-	if code.UsedBy != nil {
-		update = update.SetUsedBy(*code.UsedBy)
-	} else {
-		update = update.ClearUsedBy()
-	}
-	if code.UsedAt != nil {
-		update = update.SetUsedAt(*code.UsedAt)
-	} else {
-		update = update.ClearUsedAt()
-	}
-	if code.GroupID != nil {
-		update = update.SetGroupID(*code.GroupID)
-	} else {
-		update = update.ClearGroupID()
-	}
-	_, err := update.Save(ctx)
-	return err
-}
-
-func (r *oauthPendingFlowRedeemCodeRepo) BatchUpdate(context.Context, []int64, service.RedeemCodeBatchUpdateFields) (int64, error) {
-	panic("unexpected BatchUpdate call")
-}
-
-func (r *oauthPendingFlowRedeemCodeRepo) Delete(context.Context, int64) error {
-	panic("unexpected Delete call")
-}
-
-func (r *oauthPendingFlowRedeemCodeRepo) Use(ctx context.Context, id, userID int64) error {
-	affected, err := r.client.RedeemCode.Update().
-		Where(redeemcode.IDEQ(id), redeemcode.StatusEQ(service.StatusUnused)).
-		SetStatus(service.StatusUsed).
-		SetUsedBy(userID).
-		SetUsedAt(time.Now().UTC()).
-		Save(ctx)
-	if err != nil {
-		return err
-	}
-	if affected == 0 {
-		return service.ErrRedeemCodeUsed
-	}
-	return nil
-}
-
-func (r *oauthPendingFlowRedeemCodeRepo) List(context.Context, pagination.PaginationParams) ([]service.RedeemCode, *pagination.PaginationResult, error) {
-	panic("unexpected List call")
-}
-
-func (r *oauthPendingFlowRedeemCodeRepo) ListWithFilters(context.Context, pagination.PaginationParams, string, string, string) ([]service.RedeemCode, *pagination.PaginationResult, error) {
-	panic("unexpected ListWithFilters call")
-}
-
-func (r *oauthPendingFlowRedeemCodeRepo) ListByUser(context.Context, int64, int) ([]service.RedeemCode, error) {
-	panic("unexpected ListByUser call")
-}
-
-func (r *oauthPendingFlowRedeemCodeRepo) ListByUserPaginated(context.Context, int64, pagination.PaginationParams, string) ([]service.RedeemCode, *pagination.PaginationResult, error) {
-	panic("unexpected ListByUserPaginated call")
-}
-
-func (r *oauthPendingFlowRedeemCodeRepo) SumPositiveBalanceByUser(context.Context, int64) (float64, error) {
-	panic("unexpected SumPositiveBalanceByUser call")
-}
-
 func decodeJSONResponseData(t *testing.T, recorder *httptest.ResponseRecorder) map[string]any {
 	t.Helper()
 
@@ -2880,6 +2745,17 @@ func (r *oauthPendingFlowUserRepo) GetByID(ctx context.Context, id int64) (*serv
 
 func (r *oauthPendingFlowUserRepo) GetByEmail(ctx context.Context, email string) (*service.User, error) {
 	entity, err := r.client.User.Query().Where(dbuser.EmailEQ(email)).Only(ctx)
+	if err != nil {
+		if dbent.IsNotFound(err) {
+			return nil, service.ErrUserNotFound
+		}
+		return nil, err
+	}
+	return oauthPendingFlowServiceUser(entity), nil
+}
+
+func (r *oauthPendingFlowUserRepo) GetByUsername(ctx context.Context, username string) (*service.User, error) {
+	entity, err := r.client.User.Query().Where(dbuser.UsernameEQ(username)).Only(ctx)
 	if err != nil {
 		if dbent.IsNotFound(err) {
 			return nil, service.ErrUserNotFound

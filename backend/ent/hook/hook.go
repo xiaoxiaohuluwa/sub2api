@@ -285,18 +285,6 @@ func (f ProxyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProxyMutation", m)
 }
 
-// The RedeemCodeFunc type is an adapter to allow the use of ordinary
-// function as RedeemCode mutator.
-type RedeemCodeFunc func(context.Context, *ent.RedeemCodeMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f RedeemCodeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.RedeemCodeMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RedeemCodeMutation", m)
-}
-
 // The SecuritySecretFunc type is an adapter to allow the use of ordinary
 // function as SecuritySecret mutator.
 type SecuritySecretFunc func(context.Context, *ent.SecuritySecretMutation) (ent.Value, error)

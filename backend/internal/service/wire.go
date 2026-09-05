@@ -56,7 +56,6 @@ func ProvideEmailQueueService(emailService *EmailService) *EmailQueueService {
 func ProvideAuthService(
 	entClient *dbent.Client,
 	userRepo UserRepository,
-	redeemRepo RedeemCodeRepository,
 	refreshTokenCache RefreshTokenCache,
 	cfg *config.Config,
 	settingService *SettingService,
@@ -71,7 +70,6 @@ func ProvideAuthService(
 	svc := NewAuthService(
 		entClient,
 		userRepo,
-		redeemRepo,
 		refreshTokenCache,
 		cfg,
 		settingService,
@@ -822,7 +820,6 @@ var ProviderSet = wire.NewSet(
 	NewCompositeRouteResolver,
 	NewAccountService,
 	NewProxyService,
-	NewRedeemService,
 	NewUsageService,
 	NewDashboardService,
 	ProvidePricingService,
@@ -946,8 +943,8 @@ func ProvidePaymentConfigService(entClient *dbent.Client, settingRepo SettingRep
 }
 
 // ProvidePaymentService creates PaymentService and attaches notification email delivery.
-func ProvidePaymentService(entClient *dbent.Client, registry *payment.Registry, loadBalancer payment.LoadBalancer, redeemService *RedeemService, subscriptionSvc *SubscriptionService, configService *PaymentConfigService, userRepo UserRepository, groupRepo GroupRepository, notificationEmailService *NotificationEmailService) *PaymentService {
-	svc := NewPaymentService(entClient, registry, loadBalancer, redeemService, subscriptionSvc, configService, userRepo, groupRepo)
+func ProvidePaymentService(entClient *dbent.Client, registry *payment.Registry, loadBalancer payment.LoadBalancer, subscriptionSvc *SubscriptionService, configService *PaymentConfigService, userRepo UserRepository, groupRepo GroupRepository, notificationEmailService *NotificationEmailService) *PaymentService {
+	svc := NewPaymentService(entClient, registry, loadBalancer, subscriptionSvc, configService, userRepo, groupRepo)
 	svc.SetNotificationEmailService(notificationEmailService)
 	return svc
 }

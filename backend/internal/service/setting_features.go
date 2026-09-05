@@ -52,15 +52,6 @@ func (s *SettingService) GetRegistrationEmailSuffixWhitelist(ctx context.Context
 }
 
 
-// IsInvitationCodeEnabled 检查是否启用邀请码注册功能
-func (s *SettingService) IsInvitationCodeEnabled(ctx context.Context) bool {
-	value, err := s.settingRepo.GetValue(ctx, SettingKeyInvitationCodeEnabled)
-	if err != nil {
-		return false // 默认关闭
-	}
-	return value == "true"
-}
-
 // GetCustomMenuItemsRaw returns the raw JSON string of custom_menu_items setting.
 func (s *SettingService) GetCustomMenuItemsRaw(ctx context.Context) string {
 	value, err := s.settingRepo.GetValue(ctx, SettingKeyCustomMenuItems)

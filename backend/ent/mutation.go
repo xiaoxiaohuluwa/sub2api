@@ -36,7 +36,6 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/promocode"
 	"github.com/Wei-Shaw/sub2api/ent/promocodeusage"
 	"github.com/Wei-Shaw/sub2api/ent/proxy"
-	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/securitysecret"
 	"github.com/Wei-Shaw/sub2api/ent/setting"
 	"github.com/Wei-Shaw/sub2api/ent/subscriptionplan"
@@ -84,7 +83,6 @@ const (
 	TypePromoCode                = "PromoCode"
 	TypePromoCodeUsage           = "PromoCodeUsage"
 	TypeProxy                    = "Proxy"
-	TypeRedeemCode               = "RedeemCode"
 	TypeSecuritySecret           = "SecuritySecret"
 	TypeSetting                  = "Setting"
 	TypeSubscriptionPlan         = "SubscriptionPlan"
@@ -17068,9 +17066,6 @@ type GroupMutation struct {
 	api_keys                                map[int64]struct{}
 	removedapi_keys                         map[int64]struct{}
 	clearedapi_keys                         bool
-	redeem_codes                            map[int64]struct{}
-	removedredeem_codes                     map[int64]struct{}
-	clearedredeem_codes                     bool
 	subscriptions                           map[int64]struct{}
 	removedsubscriptions                    map[int64]struct{}
 	clearedsubscriptions                    bool
@@ -20468,60 +20463,6 @@ func (m *GroupMutation) ResetAPIKeys() {
 	m.removedapi_keys = nil
 }
 
-// AddRedeemCodeIDs adds the "redeem_codes" edge to the RedeemCode entity by ids.
-func (m *GroupMutation) AddRedeemCodeIDs(ids ...int64) {
-	if m.redeem_codes == nil {
-		m.redeem_codes = make(map[int64]struct{})
-	}
-	for i := range ids {
-		m.redeem_codes[ids[i]] = struct{}{}
-	}
-}
-
-// ClearRedeemCodes clears the "redeem_codes" edge to the RedeemCode entity.
-func (m *GroupMutation) ClearRedeemCodes() {
-	m.clearedredeem_codes = true
-}
-
-// RedeemCodesCleared reports if the "redeem_codes" edge to the RedeemCode entity was cleared.
-func (m *GroupMutation) RedeemCodesCleared() bool {
-	return m.clearedredeem_codes
-}
-
-// RemoveRedeemCodeIDs removes the "redeem_codes" edge to the RedeemCode entity by IDs.
-func (m *GroupMutation) RemoveRedeemCodeIDs(ids ...int64) {
-	if m.removedredeem_codes == nil {
-		m.removedredeem_codes = make(map[int64]struct{})
-	}
-	for i := range ids {
-		delete(m.redeem_codes, ids[i])
-		m.removedredeem_codes[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedRedeemCodes returns the removed IDs of the "redeem_codes" edge to the RedeemCode entity.
-func (m *GroupMutation) RemovedRedeemCodesIDs() (ids []int64) {
-	for id := range m.removedredeem_codes {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// RedeemCodesIDs returns the "redeem_codes" edge IDs in the mutation.
-func (m *GroupMutation) RedeemCodesIDs() (ids []int64) {
-	for id := range m.redeem_codes {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetRedeemCodes resets all changes to the "redeem_codes" edge.
-func (m *GroupMutation) ResetRedeemCodes() {
-	m.redeem_codes = nil
-	m.clearedredeem_codes = false
-	m.removedredeem_codes = nil
-}
-
 // AddSubscriptionIDs adds the "subscriptions" edge to the UserSubscription entity by ids.
 func (m *GroupMutation) AddSubscriptionIDs(ids ...int64) {
 	if m.subscriptions == nil {
@@ -22421,12 +22362,9 @@ func (m *GroupMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GroupMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 5)
 	if m.api_keys != nil {
 		edges = append(edges, group.EdgeAPIKeys)
-	}
-	if m.redeem_codes != nil {
-		edges = append(edges, group.EdgeRedeemCodes)
 	}
 	if m.subscriptions != nil {
 		edges = append(edges, group.EdgeSubscriptions)
@@ -22450,12 +22388,6 @@ func (m *GroupMutation) AddedIDs(name string) []ent.Value {
 	case group.EdgeAPIKeys:
 		ids := make([]ent.Value, 0, len(m.api_keys))
 		for id := range m.api_keys {
-			ids = append(ids, id)
-		}
-		return ids
-	case group.EdgeRedeemCodes:
-		ids := make([]ent.Value, 0, len(m.redeem_codes))
-		for id := range m.redeem_codes {
 			ids = append(ids, id)
 		}
 		return ids
@@ -22489,12 +22421,9 @@ func (m *GroupMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GroupMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 5)
 	if m.removedapi_keys != nil {
 		edges = append(edges, group.EdgeAPIKeys)
-	}
-	if m.removedredeem_codes != nil {
-		edges = append(edges, group.EdgeRedeemCodes)
 	}
 	if m.removedsubscriptions != nil {
 		edges = append(edges, group.EdgeSubscriptions)
@@ -22518,12 +22447,6 @@ func (m *GroupMutation) RemovedIDs(name string) []ent.Value {
 	case group.EdgeAPIKeys:
 		ids := make([]ent.Value, 0, len(m.removedapi_keys))
 		for id := range m.removedapi_keys {
-			ids = append(ids, id)
-		}
-		return ids
-	case group.EdgeRedeemCodes:
-		ids := make([]ent.Value, 0, len(m.removedredeem_codes))
-		for id := range m.removedredeem_codes {
 			ids = append(ids, id)
 		}
 		return ids
@@ -22557,12 +22480,9 @@ func (m *GroupMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GroupMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 5)
 	if m.clearedapi_keys {
 		edges = append(edges, group.EdgeAPIKeys)
-	}
-	if m.clearedredeem_codes {
-		edges = append(edges, group.EdgeRedeemCodes)
 	}
 	if m.clearedsubscriptions {
 		edges = append(edges, group.EdgeSubscriptions)
@@ -22585,8 +22505,6 @@ func (m *GroupMutation) EdgeCleared(name string) bool {
 	switch name {
 	case group.EdgeAPIKeys:
 		return m.clearedapi_keys
-	case group.EdgeRedeemCodes:
-		return m.clearedredeem_codes
 	case group.EdgeSubscriptions:
 		return m.clearedsubscriptions
 	case group.EdgeUsageLogs:
@@ -22613,9 +22531,6 @@ func (m *GroupMutation) ResetEdge(name string) error {
 	switch name {
 	case group.EdgeAPIKeys:
 		m.ResetAPIKeys()
-		return nil
-	case group.EdgeRedeemCodes:
-		m.ResetRedeemCodes()
 		return nil
 	case group.EdgeSubscriptions:
 		m.ResetSubscriptions()
@@ -34163,1152 +34078,6 @@ func (m *ProxyMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Proxy edge %s", name)
 }
 
-// RedeemCodeMutation represents an operation that mutates the RedeemCode nodes in the graph.
-type RedeemCodeMutation struct {
-	config
-	op               Op
-	typ              string
-	id               *int64
-	code             *string
-	_type            *string
-	value            *float64
-	addvalue         *float64
-	status           *string
-	used_at          *time.Time
-	notes            *string
-	created_at       *time.Time
-	expires_at       *time.Time
-	validity_days    *int
-	addvalidity_days *int
-	clearedFields    map[string]struct{}
-	user             *int64
-	cleareduser      bool
-	group            *int64
-	clearedgroup     bool
-	done             bool
-	oldValue         func(context.Context) (*RedeemCode, error)
-	predicates       []predicate.RedeemCode
-}
-
-var _ ent.Mutation = (*RedeemCodeMutation)(nil)
-
-// redeemcodeOption allows management of the mutation configuration using functional options.
-type redeemcodeOption func(*RedeemCodeMutation)
-
-// newRedeemCodeMutation creates new mutation for the RedeemCode entity.
-func newRedeemCodeMutation(c config, op Op, opts ...redeemcodeOption) *RedeemCodeMutation {
-	m := &RedeemCodeMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeRedeemCode,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withRedeemCodeID sets the ID field of the mutation.
-func withRedeemCodeID(id int64) redeemcodeOption {
-	return func(m *RedeemCodeMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *RedeemCode
-		)
-		m.oldValue = func(ctx context.Context) (*RedeemCode, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().RedeemCode.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withRedeemCode sets the old RedeemCode of the mutation.
-func withRedeemCode(node *RedeemCode) redeemcodeOption {
-	return func(m *RedeemCodeMutation) {
-		m.oldValue = func(context.Context) (*RedeemCode, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m RedeemCodeMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m RedeemCodeMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *RedeemCodeMutation) ID() (id int64, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *RedeemCodeMutation) IDs(ctx context.Context) ([]int64, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int64{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().RedeemCode.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetCode sets the "code" field.
-func (m *RedeemCodeMutation) SetCode(s string) {
-	m.code = &s
-}
-
-// Code returns the value of the "code" field in the mutation.
-func (m *RedeemCodeMutation) Code() (r string, exists bool) {
-	v := m.code
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCode returns the old "code" field's value of the RedeemCode entity.
-// If the RedeemCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RedeemCodeMutation) OldCode(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCode: %w", err)
-	}
-	return oldValue.Code, nil
-}
-
-// ResetCode resets all changes to the "code" field.
-func (m *RedeemCodeMutation) ResetCode() {
-	m.code = nil
-}
-
-// SetType sets the "type" field.
-func (m *RedeemCodeMutation) SetType(s string) {
-	m._type = &s
-}
-
-// GetType returns the value of the "type" field in the mutation.
-func (m *RedeemCodeMutation) GetType() (r string, exists bool) {
-	v := m._type
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldType returns the old "type" field's value of the RedeemCode entity.
-// If the RedeemCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RedeemCodeMutation) OldType(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldType is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldType requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldType: %w", err)
-	}
-	return oldValue.Type, nil
-}
-
-// ResetType resets all changes to the "type" field.
-func (m *RedeemCodeMutation) ResetType() {
-	m._type = nil
-}
-
-// SetValue sets the "value" field.
-func (m *RedeemCodeMutation) SetValue(f float64) {
-	m.value = &f
-	m.addvalue = nil
-}
-
-// Value returns the value of the "value" field in the mutation.
-func (m *RedeemCodeMutation) Value() (r float64, exists bool) {
-	v := m.value
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldValue returns the old "value" field's value of the RedeemCode entity.
-// If the RedeemCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RedeemCodeMutation) OldValue(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldValue is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldValue requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldValue: %w", err)
-	}
-	return oldValue.Value, nil
-}
-
-// AddValue adds f to the "value" field.
-func (m *RedeemCodeMutation) AddValue(f float64) {
-	if m.addvalue != nil {
-		*m.addvalue += f
-	} else {
-		m.addvalue = &f
-	}
-}
-
-// AddedValue returns the value that was added to the "value" field in this mutation.
-func (m *RedeemCodeMutation) AddedValue() (r float64, exists bool) {
-	v := m.addvalue
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetValue resets all changes to the "value" field.
-func (m *RedeemCodeMutation) ResetValue() {
-	m.value = nil
-	m.addvalue = nil
-}
-
-// SetStatus sets the "status" field.
-func (m *RedeemCodeMutation) SetStatus(s string) {
-	m.status = &s
-}
-
-// Status returns the value of the "status" field in the mutation.
-func (m *RedeemCodeMutation) Status() (r string, exists bool) {
-	v := m.status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatus returns the old "status" field's value of the RedeemCode entity.
-// If the RedeemCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RedeemCodeMutation) OldStatus(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
-	}
-	return oldValue.Status, nil
-}
-
-// ResetStatus resets all changes to the "status" field.
-func (m *RedeemCodeMutation) ResetStatus() {
-	m.status = nil
-}
-
-// SetUsedBy sets the "used_by" field.
-func (m *RedeemCodeMutation) SetUsedBy(i int64) {
-	m.user = &i
-}
-
-// UsedBy returns the value of the "used_by" field in the mutation.
-func (m *RedeemCodeMutation) UsedBy() (r int64, exists bool) {
-	v := m.user
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUsedBy returns the old "used_by" field's value of the RedeemCode entity.
-// If the RedeemCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RedeemCodeMutation) OldUsedBy(ctx context.Context) (v *int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUsedBy is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUsedBy requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUsedBy: %w", err)
-	}
-	return oldValue.UsedBy, nil
-}
-
-// ClearUsedBy clears the value of the "used_by" field.
-func (m *RedeemCodeMutation) ClearUsedBy() {
-	m.user = nil
-	m.clearedFields[redeemcode.FieldUsedBy] = struct{}{}
-}
-
-// UsedByCleared returns if the "used_by" field was cleared in this mutation.
-func (m *RedeemCodeMutation) UsedByCleared() bool {
-	_, ok := m.clearedFields[redeemcode.FieldUsedBy]
-	return ok
-}
-
-// ResetUsedBy resets all changes to the "used_by" field.
-func (m *RedeemCodeMutation) ResetUsedBy() {
-	m.user = nil
-	delete(m.clearedFields, redeemcode.FieldUsedBy)
-}
-
-// SetUsedAt sets the "used_at" field.
-func (m *RedeemCodeMutation) SetUsedAt(t time.Time) {
-	m.used_at = &t
-}
-
-// UsedAt returns the value of the "used_at" field in the mutation.
-func (m *RedeemCodeMutation) UsedAt() (r time.Time, exists bool) {
-	v := m.used_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUsedAt returns the old "used_at" field's value of the RedeemCode entity.
-// If the RedeemCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RedeemCodeMutation) OldUsedAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUsedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUsedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUsedAt: %w", err)
-	}
-	return oldValue.UsedAt, nil
-}
-
-// ClearUsedAt clears the value of the "used_at" field.
-func (m *RedeemCodeMutation) ClearUsedAt() {
-	m.used_at = nil
-	m.clearedFields[redeemcode.FieldUsedAt] = struct{}{}
-}
-
-// UsedAtCleared returns if the "used_at" field was cleared in this mutation.
-func (m *RedeemCodeMutation) UsedAtCleared() bool {
-	_, ok := m.clearedFields[redeemcode.FieldUsedAt]
-	return ok
-}
-
-// ResetUsedAt resets all changes to the "used_at" field.
-func (m *RedeemCodeMutation) ResetUsedAt() {
-	m.used_at = nil
-	delete(m.clearedFields, redeemcode.FieldUsedAt)
-}
-
-// SetNotes sets the "notes" field.
-func (m *RedeemCodeMutation) SetNotes(s string) {
-	m.notes = &s
-}
-
-// Notes returns the value of the "notes" field in the mutation.
-func (m *RedeemCodeMutation) Notes() (r string, exists bool) {
-	v := m.notes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldNotes returns the old "notes" field's value of the RedeemCode entity.
-// If the RedeemCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RedeemCodeMutation) OldNotes(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldNotes is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldNotes requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldNotes: %w", err)
-	}
-	return oldValue.Notes, nil
-}
-
-// ClearNotes clears the value of the "notes" field.
-func (m *RedeemCodeMutation) ClearNotes() {
-	m.notes = nil
-	m.clearedFields[redeemcode.FieldNotes] = struct{}{}
-}
-
-// NotesCleared returns if the "notes" field was cleared in this mutation.
-func (m *RedeemCodeMutation) NotesCleared() bool {
-	_, ok := m.clearedFields[redeemcode.FieldNotes]
-	return ok
-}
-
-// ResetNotes resets all changes to the "notes" field.
-func (m *RedeemCodeMutation) ResetNotes() {
-	m.notes = nil
-	delete(m.clearedFields, redeemcode.FieldNotes)
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (m *RedeemCodeMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *RedeemCodeMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the RedeemCode entity.
-// If the RedeemCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RedeemCodeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *RedeemCodeMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
-// SetExpiresAt sets the "expires_at" field.
-func (m *RedeemCodeMutation) SetExpiresAt(t time.Time) {
-	m.expires_at = &t
-}
-
-// ExpiresAt returns the value of the "expires_at" field in the mutation.
-func (m *RedeemCodeMutation) ExpiresAt() (r time.Time, exists bool) {
-	v := m.expires_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldExpiresAt returns the old "expires_at" field's value of the RedeemCode entity.
-// If the RedeemCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RedeemCodeMutation) OldExpiresAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
-	}
-	return oldValue.ExpiresAt, nil
-}
-
-// ClearExpiresAt clears the value of the "expires_at" field.
-func (m *RedeemCodeMutation) ClearExpiresAt() {
-	m.expires_at = nil
-	m.clearedFields[redeemcode.FieldExpiresAt] = struct{}{}
-}
-
-// ExpiresAtCleared returns if the "expires_at" field was cleared in this mutation.
-func (m *RedeemCodeMutation) ExpiresAtCleared() bool {
-	_, ok := m.clearedFields[redeemcode.FieldExpiresAt]
-	return ok
-}
-
-// ResetExpiresAt resets all changes to the "expires_at" field.
-func (m *RedeemCodeMutation) ResetExpiresAt() {
-	m.expires_at = nil
-	delete(m.clearedFields, redeemcode.FieldExpiresAt)
-}
-
-// SetGroupID sets the "group_id" field.
-func (m *RedeemCodeMutation) SetGroupID(i int64) {
-	m.group = &i
-}
-
-// GroupID returns the value of the "group_id" field in the mutation.
-func (m *RedeemCodeMutation) GroupID() (r int64, exists bool) {
-	v := m.group
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldGroupID returns the old "group_id" field's value of the RedeemCode entity.
-// If the RedeemCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RedeemCodeMutation) OldGroupID(ctx context.Context) (v *int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGroupID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGroupID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGroupID: %w", err)
-	}
-	return oldValue.GroupID, nil
-}
-
-// ClearGroupID clears the value of the "group_id" field.
-func (m *RedeemCodeMutation) ClearGroupID() {
-	m.group = nil
-	m.clearedFields[redeemcode.FieldGroupID] = struct{}{}
-}
-
-// GroupIDCleared returns if the "group_id" field was cleared in this mutation.
-func (m *RedeemCodeMutation) GroupIDCleared() bool {
-	_, ok := m.clearedFields[redeemcode.FieldGroupID]
-	return ok
-}
-
-// ResetGroupID resets all changes to the "group_id" field.
-func (m *RedeemCodeMutation) ResetGroupID() {
-	m.group = nil
-	delete(m.clearedFields, redeemcode.FieldGroupID)
-}
-
-// SetValidityDays sets the "validity_days" field.
-func (m *RedeemCodeMutation) SetValidityDays(i int) {
-	m.validity_days = &i
-	m.addvalidity_days = nil
-}
-
-// ValidityDays returns the value of the "validity_days" field in the mutation.
-func (m *RedeemCodeMutation) ValidityDays() (r int, exists bool) {
-	v := m.validity_days
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldValidityDays returns the old "validity_days" field's value of the RedeemCode entity.
-// If the RedeemCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RedeemCodeMutation) OldValidityDays(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldValidityDays is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldValidityDays requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldValidityDays: %w", err)
-	}
-	return oldValue.ValidityDays, nil
-}
-
-// AddValidityDays adds i to the "validity_days" field.
-func (m *RedeemCodeMutation) AddValidityDays(i int) {
-	if m.addvalidity_days != nil {
-		*m.addvalidity_days += i
-	} else {
-		m.addvalidity_days = &i
-	}
-}
-
-// AddedValidityDays returns the value that was added to the "validity_days" field in this mutation.
-func (m *RedeemCodeMutation) AddedValidityDays() (r int, exists bool) {
-	v := m.addvalidity_days
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetValidityDays resets all changes to the "validity_days" field.
-func (m *RedeemCodeMutation) ResetValidityDays() {
-	m.validity_days = nil
-	m.addvalidity_days = nil
-}
-
-// SetUserID sets the "user" edge to the User entity by id.
-func (m *RedeemCodeMutation) SetUserID(id int64) {
-	m.user = &id
-}
-
-// ClearUser clears the "user" edge to the User entity.
-func (m *RedeemCodeMutation) ClearUser() {
-	m.cleareduser = true
-	m.clearedFields[redeemcode.FieldUsedBy] = struct{}{}
-}
-
-// UserCleared reports if the "user" edge to the User entity was cleared.
-func (m *RedeemCodeMutation) UserCleared() bool {
-	return m.UsedByCleared() || m.cleareduser
-}
-
-// UserID returns the "user" edge ID in the mutation.
-func (m *RedeemCodeMutation) UserID() (id int64, exists bool) {
-	if m.user != nil {
-		return *m.user, true
-	}
-	return
-}
-
-// UserIDs returns the "user" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// UserID instead. It exists only for internal usage by the builders.
-func (m *RedeemCodeMutation) UserIDs() (ids []int64) {
-	if id := m.user; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetUser resets all changes to the "user" edge.
-func (m *RedeemCodeMutation) ResetUser() {
-	m.user = nil
-	m.cleareduser = false
-}
-
-// ClearGroup clears the "group" edge to the Group entity.
-func (m *RedeemCodeMutation) ClearGroup() {
-	m.clearedgroup = true
-	m.clearedFields[redeemcode.FieldGroupID] = struct{}{}
-}
-
-// GroupCleared reports if the "group" edge to the Group entity was cleared.
-func (m *RedeemCodeMutation) GroupCleared() bool {
-	return m.GroupIDCleared() || m.clearedgroup
-}
-
-// GroupIDs returns the "group" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// GroupID instead. It exists only for internal usage by the builders.
-func (m *RedeemCodeMutation) GroupIDs() (ids []int64) {
-	if id := m.group; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetGroup resets all changes to the "group" edge.
-func (m *RedeemCodeMutation) ResetGroup() {
-	m.group = nil
-	m.clearedgroup = false
-}
-
-// Where appends a list predicates to the RedeemCodeMutation builder.
-func (m *RedeemCodeMutation) Where(ps ...predicate.RedeemCode) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the RedeemCodeMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *RedeemCodeMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.RedeemCode, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *RedeemCodeMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *RedeemCodeMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (RedeemCode).
-func (m *RedeemCodeMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *RedeemCodeMutation) Fields() []string {
-	fields := make([]string, 0, 11)
-	if m.code != nil {
-		fields = append(fields, redeemcode.FieldCode)
-	}
-	if m._type != nil {
-		fields = append(fields, redeemcode.FieldType)
-	}
-	if m.value != nil {
-		fields = append(fields, redeemcode.FieldValue)
-	}
-	if m.status != nil {
-		fields = append(fields, redeemcode.FieldStatus)
-	}
-	if m.user != nil {
-		fields = append(fields, redeemcode.FieldUsedBy)
-	}
-	if m.used_at != nil {
-		fields = append(fields, redeemcode.FieldUsedAt)
-	}
-	if m.notes != nil {
-		fields = append(fields, redeemcode.FieldNotes)
-	}
-	if m.created_at != nil {
-		fields = append(fields, redeemcode.FieldCreatedAt)
-	}
-	if m.expires_at != nil {
-		fields = append(fields, redeemcode.FieldExpiresAt)
-	}
-	if m.group != nil {
-		fields = append(fields, redeemcode.FieldGroupID)
-	}
-	if m.validity_days != nil {
-		fields = append(fields, redeemcode.FieldValidityDays)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *RedeemCodeMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case redeemcode.FieldCode:
-		return m.Code()
-	case redeemcode.FieldType:
-		return m.GetType()
-	case redeemcode.FieldValue:
-		return m.Value()
-	case redeemcode.FieldStatus:
-		return m.Status()
-	case redeemcode.FieldUsedBy:
-		return m.UsedBy()
-	case redeemcode.FieldUsedAt:
-		return m.UsedAt()
-	case redeemcode.FieldNotes:
-		return m.Notes()
-	case redeemcode.FieldCreatedAt:
-		return m.CreatedAt()
-	case redeemcode.FieldExpiresAt:
-		return m.ExpiresAt()
-	case redeemcode.FieldGroupID:
-		return m.GroupID()
-	case redeemcode.FieldValidityDays:
-		return m.ValidityDays()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *RedeemCodeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case redeemcode.FieldCode:
-		return m.OldCode(ctx)
-	case redeemcode.FieldType:
-		return m.OldType(ctx)
-	case redeemcode.FieldValue:
-		return m.OldValue(ctx)
-	case redeemcode.FieldStatus:
-		return m.OldStatus(ctx)
-	case redeemcode.FieldUsedBy:
-		return m.OldUsedBy(ctx)
-	case redeemcode.FieldUsedAt:
-		return m.OldUsedAt(ctx)
-	case redeemcode.FieldNotes:
-		return m.OldNotes(ctx)
-	case redeemcode.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	case redeemcode.FieldExpiresAt:
-		return m.OldExpiresAt(ctx)
-	case redeemcode.FieldGroupID:
-		return m.OldGroupID(ctx)
-	case redeemcode.FieldValidityDays:
-		return m.OldValidityDays(ctx)
-	}
-	return nil, fmt.Errorf("unknown RedeemCode field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *RedeemCodeMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case redeemcode.FieldCode:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCode(v)
-		return nil
-	case redeemcode.FieldType:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetType(v)
-		return nil
-	case redeemcode.FieldValue:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetValue(v)
-		return nil
-	case redeemcode.FieldStatus:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
-		return nil
-	case redeemcode.FieldUsedBy:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUsedBy(v)
-		return nil
-	case redeemcode.FieldUsedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUsedAt(v)
-		return nil
-	case redeemcode.FieldNotes:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetNotes(v)
-		return nil
-	case redeemcode.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	case redeemcode.FieldExpiresAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetExpiresAt(v)
-		return nil
-	case redeemcode.FieldGroupID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetGroupID(v)
-		return nil
-	case redeemcode.FieldValidityDays:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetValidityDays(v)
-		return nil
-	}
-	return fmt.Errorf("unknown RedeemCode field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *RedeemCodeMutation) AddedFields() []string {
-	var fields []string
-	if m.addvalue != nil {
-		fields = append(fields, redeemcode.FieldValue)
-	}
-	if m.addvalidity_days != nil {
-		fields = append(fields, redeemcode.FieldValidityDays)
-	}
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *RedeemCodeMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case redeemcode.FieldValue:
-		return m.AddedValue()
-	case redeemcode.FieldValidityDays:
-		return m.AddedValidityDays()
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *RedeemCodeMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	case redeemcode.FieldValue:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddValue(v)
-		return nil
-	case redeemcode.FieldValidityDays:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddValidityDays(v)
-		return nil
-	}
-	return fmt.Errorf("unknown RedeemCode numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *RedeemCodeMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(redeemcode.FieldUsedBy) {
-		fields = append(fields, redeemcode.FieldUsedBy)
-	}
-	if m.FieldCleared(redeemcode.FieldUsedAt) {
-		fields = append(fields, redeemcode.FieldUsedAt)
-	}
-	if m.FieldCleared(redeemcode.FieldNotes) {
-		fields = append(fields, redeemcode.FieldNotes)
-	}
-	if m.FieldCleared(redeemcode.FieldExpiresAt) {
-		fields = append(fields, redeemcode.FieldExpiresAt)
-	}
-	if m.FieldCleared(redeemcode.FieldGroupID) {
-		fields = append(fields, redeemcode.FieldGroupID)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *RedeemCodeMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *RedeemCodeMutation) ClearField(name string) error {
-	switch name {
-	case redeemcode.FieldUsedBy:
-		m.ClearUsedBy()
-		return nil
-	case redeemcode.FieldUsedAt:
-		m.ClearUsedAt()
-		return nil
-	case redeemcode.FieldNotes:
-		m.ClearNotes()
-		return nil
-	case redeemcode.FieldExpiresAt:
-		m.ClearExpiresAt()
-		return nil
-	case redeemcode.FieldGroupID:
-		m.ClearGroupID()
-		return nil
-	}
-	return fmt.Errorf("unknown RedeemCode nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *RedeemCodeMutation) ResetField(name string) error {
-	switch name {
-	case redeemcode.FieldCode:
-		m.ResetCode()
-		return nil
-	case redeemcode.FieldType:
-		m.ResetType()
-		return nil
-	case redeemcode.FieldValue:
-		m.ResetValue()
-		return nil
-	case redeemcode.FieldStatus:
-		m.ResetStatus()
-		return nil
-	case redeemcode.FieldUsedBy:
-		m.ResetUsedBy()
-		return nil
-	case redeemcode.FieldUsedAt:
-		m.ResetUsedAt()
-		return nil
-	case redeemcode.FieldNotes:
-		m.ResetNotes()
-		return nil
-	case redeemcode.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	case redeemcode.FieldExpiresAt:
-		m.ResetExpiresAt()
-		return nil
-	case redeemcode.FieldGroupID:
-		m.ResetGroupID()
-		return nil
-	case redeemcode.FieldValidityDays:
-		m.ResetValidityDays()
-		return nil
-	}
-	return fmt.Errorf("unknown RedeemCode field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *RedeemCodeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.user != nil {
-		edges = append(edges, redeemcode.EdgeUser)
-	}
-	if m.group != nil {
-		edges = append(edges, redeemcode.EdgeGroup)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *RedeemCodeMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case redeemcode.EdgeUser:
-		if id := m.user; id != nil {
-			return []ent.Value{*id}
-		}
-	case redeemcode.EdgeGroup:
-		if id := m.group; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *RedeemCodeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *RedeemCodeMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *RedeemCodeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.cleareduser {
-		edges = append(edges, redeemcode.EdgeUser)
-	}
-	if m.clearedgroup {
-		edges = append(edges, redeemcode.EdgeGroup)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *RedeemCodeMutation) EdgeCleared(name string) bool {
-	switch name {
-	case redeemcode.EdgeUser:
-		return m.cleareduser
-	case redeemcode.EdgeGroup:
-		return m.clearedgroup
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *RedeemCodeMutation) ClearEdge(name string) error {
-	switch name {
-	case redeemcode.EdgeUser:
-		m.ClearUser()
-		return nil
-	case redeemcode.EdgeGroup:
-		m.ClearGroup()
-		return nil
-	}
-	return fmt.Errorf("unknown RedeemCode unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *RedeemCodeMutation) ResetEdge(name string) error {
-	switch name {
-	case redeemcode.EdgeUser:
-		m.ResetUser()
-		return nil
-	case redeemcode.EdgeGroup:
-		m.ResetGroup()
-		return nil
-	}
-	return fmt.Errorf("unknown RedeemCode edge %s", name)
-}
-
 // SecuritySecretMutation represents an operation that mutates the SecuritySecret nodes in the graph.
 type SecuritySecretMutation struct {
 	config
@@ -44118,9 +42887,6 @@ type UserMutation struct {
 	api_keys                      map[int64]struct{}
 	removedapi_keys               map[int64]struct{}
 	clearedapi_keys               bool
-	redeem_codes                  map[int64]struct{}
-	removedredeem_codes           map[int64]struct{}
-	clearedredeem_codes           bool
 	subscriptions                 map[int64]struct{}
 	removedsubscriptions          map[int64]struct{}
 	clearedsubscriptions          bool
@@ -45410,60 +44176,6 @@ func (m *UserMutation) ResetAPIKeys() {
 	m.removedapi_keys = nil
 }
 
-// AddRedeemCodeIDs adds the "redeem_codes" edge to the RedeemCode entity by ids.
-func (m *UserMutation) AddRedeemCodeIDs(ids ...int64) {
-	if m.redeem_codes == nil {
-		m.redeem_codes = make(map[int64]struct{})
-	}
-	for i := range ids {
-		m.redeem_codes[ids[i]] = struct{}{}
-	}
-}
-
-// ClearRedeemCodes clears the "redeem_codes" edge to the RedeemCode entity.
-func (m *UserMutation) ClearRedeemCodes() {
-	m.clearedredeem_codes = true
-}
-
-// RedeemCodesCleared reports if the "redeem_codes" edge to the RedeemCode entity was cleared.
-func (m *UserMutation) RedeemCodesCleared() bool {
-	return m.clearedredeem_codes
-}
-
-// RemoveRedeemCodeIDs removes the "redeem_codes" edge to the RedeemCode entity by IDs.
-func (m *UserMutation) RemoveRedeemCodeIDs(ids ...int64) {
-	if m.removedredeem_codes == nil {
-		m.removedredeem_codes = make(map[int64]struct{})
-	}
-	for i := range ids {
-		delete(m.redeem_codes, ids[i])
-		m.removedredeem_codes[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedRedeemCodes returns the removed IDs of the "redeem_codes" edge to the RedeemCode entity.
-func (m *UserMutation) RemovedRedeemCodesIDs() (ids []int64) {
-	for id := range m.removedredeem_codes {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// RedeemCodesIDs returns the "redeem_codes" edge IDs in the mutation.
-func (m *UserMutation) RedeemCodesIDs() (ids []int64) {
-	for id := range m.redeem_codes {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetRedeemCodes resets all changes to the "redeem_codes" edge.
-func (m *UserMutation) ResetRedeemCodes() {
-	m.redeem_codes = nil
-	m.clearedredeem_codes = false
-	m.removedredeem_codes = nil
-}
-
 // AddSubscriptionIDs adds the "subscriptions" edge to the UserSubscription entity by ids.
 func (m *UserMutation) AddSubscriptionIDs(ids ...int64) {
 	if m.subscriptions == nil {
@@ -46713,12 +45425,9 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 12)
 	if m.api_keys != nil {
 		edges = append(edges, user.EdgeAPIKeys)
-	}
-	if m.redeem_codes != nil {
-		edges = append(edges, user.EdgeRedeemCodes)
 	}
 	if m.subscriptions != nil {
 		edges = append(edges, user.EdgeSubscriptions)
@@ -46763,12 +45472,6 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 	case user.EdgeAPIKeys:
 		ids := make([]ent.Value, 0, len(m.api_keys))
 		for id := range m.api_keys {
-			ids = append(ids, id)
-		}
-		return ids
-	case user.EdgeRedeemCodes:
-		ids := make([]ent.Value, 0, len(m.redeem_codes))
-		for id := range m.redeem_codes {
 			ids = append(ids, id)
 		}
 		return ids
@@ -46844,12 +45547,9 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 12)
 	if m.removedapi_keys != nil {
 		edges = append(edges, user.EdgeAPIKeys)
-	}
-	if m.removedredeem_codes != nil {
-		edges = append(edges, user.EdgeRedeemCodes)
 	}
 	if m.removedsubscriptions != nil {
 		edges = append(edges, user.EdgeSubscriptions)
@@ -46894,12 +45594,6 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	case user.EdgeAPIKeys:
 		ids := make([]ent.Value, 0, len(m.removedapi_keys))
 		for id := range m.removedapi_keys {
-			ids = append(ids, id)
-		}
-		return ids
-	case user.EdgeRedeemCodes:
-		ids := make([]ent.Value, 0, len(m.removedredeem_codes))
-		for id := range m.removedredeem_codes {
 			ids = append(ids, id)
 		}
 		return ids
@@ -46975,12 +45669,9 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 12)
 	if m.clearedapi_keys {
 		edges = append(edges, user.EdgeAPIKeys)
-	}
-	if m.clearedredeem_codes {
-		edges = append(edges, user.EdgeRedeemCodes)
 	}
 	if m.clearedsubscriptions {
 		edges = append(edges, user.EdgeSubscriptions)
@@ -47024,8 +45715,6 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case user.EdgeAPIKeys:
 		return m.clearedapi_keys
-	case user.EdgeRedeemCodes:
-		return m.clearedredeem_codes
 	case user.EdgeSubscriptions:
 		return m.clearedsubscriptions
 	case user.EdgeAssignedSubscriptions:
@@ -47066,9 +45755,6 @@ func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
 	case user.EdgeAPIKeys:
 		m.ResetAPIKeys()
-		return nil
-	case user.EdgeRedeemCodes:
-		m.ResetRedeemCodes()
 		return nil
 	case user.EdgeSubscriptions:
 		m.ResetSubscriptions()

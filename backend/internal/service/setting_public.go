@@ -161,7 +161,6 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		SettingKeyRegistrationEmailSuffixWhitelist,
 		SettingKeyRegistrationEmailDomainQuotaEnabled,
 		SettingKeyPasswordResetEnabled,
-		SettingKeyInvitationCodeEnabled,
 		SettingKeyTotpEnabled,
 		SettingKeyPasskeyEnabled,
 		SettingKeyLoginAgreementEnabled,
@@ -287,7 +286,6 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		RegistrationEmailSuffixWhitelist:    registrationEmailSuffixWhitelist,
 		RegistrationEmailDomainQuotaEnabled: settings[SettingKeyRegistrationEmailDomainQuotaEnabled] == "true",
 		PasswordResetEnabled:                passwordResetEnabled,
-		InvitationCodeEnabled:               settings[SettingKeyInvitationCodeEnabled] == "true",
 		TotpEnabled:                         settings[SettingKeyTotpEnabled] == "true",
 		PasskeyEnabled:                      s.passkeyConfigured() && s.passkeySettingEnabled(settings),
 		LoginAgreementEnabled:               settings[SettingKeyLoginAgreementEnabled] == "true" && len(loginAgreementDocuments) > 0,
@@ -421,7 +419,6 @@ type PublicSettingsInjectionPayload struct {
 	RegistrationEmailSuffixWhitelist    []string                 `json:"registration_email_suffix_whitelist"`
 	RegistrationEmailDomainQuotaEnabled bool                     `json:"registration_email_domain_quota_enabled"`
 	PasswordResetEnabled                bool                     `json:"password_reset_enabled"`
-	InvitationCodeEnabled               bool                     `json:"invitation_code_enabled"`
 	TotpEnabled                         bool                     `json:"totp_enabled"`
 	PasskeyEnabled                      bool                     `json:"passkey_enabled"`
 	LoginAgreementEnabled               bool                     `json:"login_agreement_enabled"`
@@ -496,7 +493,6 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 		RegistrationEmailSuffixWhitelist:    settings.RegistrationEmailSuffixWhitelist,
 		RegistrationEmailDomainQuotaEnabled: settings.RegistrationEmailDomainQuotaEnabled,
 		PasswordResetEnabled:                settings.PasswordResetEnabled,
-		InvitationCodeEnabled:               settings.InvitationCodeEnabled,
 		TotpEnabled:                         settings.TotpEnabled,
 		PasskeyEnabled:                      settings.PasskeyEnabled,
 		LoginAgreementEnabled:               settings.LoginAgreementEnabled,

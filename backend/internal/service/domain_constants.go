@@ -127,14 +127,6 @@ const (
 	AccountTypeServiceAccount = domain.AccountTypeServiceAccount // Google Service Account 类型账号（用于 Vertex AI）
 )
 
-// Redeem type constants
-const (
-	RedeemTypeBalance          = domain.RedeemTypeBalance
-	RedeemTypeConcurrency      = domain.RedeemTypeConcurrency
-	RedeemTypeSubscription     = domain.RedeemTypeSubscription
-	RedeemTypeInvitation = domain.RedeemTypeInvitation
-)
-
 // Admin adjustment type constants
 const (
 	AdjustmentTypeAdminBalance     = domain.AdjustmentTypeAdminBalance     // 管理员调整余额
@@ -179,7 +171,6 @@ const (
 	SettingKeyRegistrationEmailDomainQuotaEnabled = "registration_email_domain_quota_enabled"
 	SettingKeyPasswordResetEnabled                = "password_reset_enabled"           // 是否启用忘记密码功能（需要先开启邮件验证）
 	SettingKeyFrontendURL                         = "frontend_url"                     // 前端基础URL，用于生成邮件中的重置密码链接
-	SettingKeyInvitationCodeEnabled = "invitation_code_enabled"          // 是否启用邀请码注册
 	SettingKeyRiskControlEnabled    = "risk_control_enabled"             // 是否启用风控中心入口与审计链路
 	SettingKeyContentModerationConfig             = "content_moderation_config"        // 内容审计配置（JSON）
 	SettingKeyCyberSessionBlockEnabled            = "cyber_session_block_enabled"      // cyber 命中后会话级自动屏蔽总开关(默认关)

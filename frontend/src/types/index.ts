@@ -1604,9 +1604,7 @@ export interface CodexSessionImportResult {
   errors?: CodexSessionImportMessage[]
 }
 
-// ==================== Usage & Redeem Types ====================
-
-export type RedeemCodeType = 'balance' | 'concurrency' | 'subscription' | 'invitation'
+// ==================== Usage Types ====================
 export type UsageRequestType = 'unknown' | 'sync' | 'stream' | 'ws_v2' | 'cyber' | 'live'
 export type ImageSizeSource = 'output' | 'input' | 'default' | 'legacy'
 export type ImageSizeBreakdown = Record<string, number>
@@ -1731,50 +1729,6 @@ export interface UsageCleanupTask {
   finished_at?: string | null
   created_at: string
   updated_at: string
-}
-
-export interface RedeemCode {
-  id: number
-  code: string
-  type: RedeemCodeType
-  value: number
-  status: 'active' | 'used' | 'expired' | 'unused' | 'disabled'
-  used_by: number | null
-  used_at: string | null
-  created_at: string
-  expires_at?: string | null
-  updated_at?: string
-  notes?: string
-  group_id?: number | null // 订阅类型专用
-  validity_days?: number // 订阅类型专用
-  user?: User
-  group?: Group // 关联的分组
-}
-
-export interface GenerateRedeemCodesRequest {
-  count: number
-  type: RedeemCodeType
-  value: number
-  group_id?: number | null // 订阅类型专用
-  validity_days?: number // 订阅类型专用
-  expires_at?: string | null
-  expires_in_days?: number
-}
-
-export interface BatchUpdateRedeemCodeFields {
-  status?: 'unused' | 'disabled'
-  expires_at?: string | null
-  notes?: string
-  group_id?: number | null
-}
-
-export interface BatchUpdateRedeemCodesRequest {
-  ids: number[]
-  fields: BatchUpdateRedeemCodeFields
-}
-
-export interface RedeemCodeRequest {
-  code: string
 }
 
 // ==================== Dashboard & Statistics ====================

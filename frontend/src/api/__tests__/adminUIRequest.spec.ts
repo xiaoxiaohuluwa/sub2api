@@ -66,8 +66,6 @@ describe('User UI request marker', () => {
     '/usage/dashboard/snapshot-v2',
     '/announcements',
     '/announcements/3/read',
-    '/redeem',
-    '/redeem/history',
     '/subscriptions',
     '/subscriptions/active',
     '/channel-monitors',

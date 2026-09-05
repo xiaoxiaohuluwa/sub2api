@@ -70,7 +70,6 @@ type createPendingOAuthAccountRequest struct {
 	TurnstileToken        string `json:"turnstile_token,omitempty"`
 	TencentCaptchaTicket  string `json:"tencent_captcha_ticket,omitempty"`
 	TencentCaptchaRandstr string `json:"tencent_captcha_randstr,omitempty"`
-	InvitationCode        string `json:"invitation_code,omitempty"`
 	AdoptDisplayName      *bool  `json:"adopt_display_name,omitempty"`
 	AdoptAvatar           *bool  `json:"adopt_avatar,omitempty"`
 }
@@ -277,10 +276,6 @@ func pendingSessionStringValue(values map[string]any, key string) string {
 	return strings.TrimSpace(value)
 }
 
-func pendingSessionWantsInvitation(payload map[string]any) bool {
-	return strings.EqualFold(strings.TrimSpace(pendingSessionStringValue(payload, "error")), "invitation_required")
-}
-
 // pendingSessionRequiresEmailCompletion 判断 callback 写入的 completion payload 是否处于"补邮箱"状态。
 // 钉钉跨组织/staff 邮箱缺失时进入此状态：前端跳到补邮箱页，exchange 不应走 adoption apply。
 func pendingSessionRequiresEmailCompletion(payload map[string]any) bool {
@@ -305,9 +300,6 @@ func pendingOAuthCompletionCanIssueTokenPair(session *dbent.PendingAuthSession, 
 		return false
 	}
 	if session.TargetUserID == nil || *session.TargetUserID <= 0 {
-		return false
-	}
-	if pendingSessionWantsInvitation(payload) {
 		return false
 	}
 	return strings.TrimSpace(pendingSessionStringValue(payload, "step")) == ""
@@ -1718,7 +1710,6 @@ func (h *AuthHandler) createPendingOAuthAccount(c *gin.Context, provider string)
 		email,
 		req.Password,
 		strings.TrimSpace(req.VerifyCode),
-		strings.TrimSpace(req.InvitationCode),
 		strings.TrimSpace(session.ProviderType),
 	)
 	if err != nil {
@@ -1747,7 +1738,6 @@ func (h *AuthHandler) createPendingOAuthAccount(c *gin.Context, provider string)
 		if rollbackErr := h.authService.RollbackOAuthEmailAccountCreation(
 			c.Request.Context(),
 			user.ID,
-			strings.TrimSpace(req.InvitationCode),
 		); rollbackErr != nil {
 			response.ErrorFrom(c, infraerrors.InternalServer(
 				"PENDING_AUTH_ACCOUNT_ROLLBACK_FAILED",
@@ -1791,7 +1781,6 @@ func (h *AuthHandler) createPendingOAuthAccount(c *gin.Context, provider string)
 	if err := h.authService.FinalizeOAuthEmailAccount(
 		txCtx,
 		user,
-		strings.TrimSpace(req.InvitationCode),
 		strings.TrimSpace(session.ProviderType),
 	); err != nil {
 		_ = tx.Rollback()
@@ -1838,7 +1827,7 @@ func (h *AuthHandler) createPendingOAuthAccount(c *gin.Context, provider string)
 	writeOAuthTokenPairResponse(c, tokenPair)
 }
 
-// ExchangePendingOAuthCompletion redeems a pending OAuth browser session into a frontend-safe payload.
+// ExchangePendingOAuthCompletion converts a pending OAuth browser session into a frontend-safe payload.
 // POST /api/v1/auth/oauth/pending/exchange
 func (h *AuthHandler) ExchangePendingOAuthCompletion(c *gin.Context) {
 	secureCookie := isRequestHTTPS(c)
@@ -1923,18 +1912,6 @@ func (h *AuthHandler) ExchangePendingOAuthCompletion(c *gin.Context) {
 		delete(payload, "adoption_required")
 	}
 
-	if pendingSessionWantsInvitation(payload) {
-		if adoptionDecision.hasDecision() {
-			decision, err := h.upsertPendingOAuthAdoptionDecision(c, session.ID, adoptionDecision)
-			if err != nil {
-				response.ErrorFrom(c, err)
-				return
-			}
-			_ = decision
-		}
-		response.Success(c, payload)
-		return
-	}
 	if pendingSessionRequiresEmailCompletion(payload) {
 		response.Success(c, payload)
 		return

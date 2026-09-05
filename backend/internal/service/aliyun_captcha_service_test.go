@@ -57,7 +57,7 @@ func newAliyunAuthServiceForTest(cfg *config.Config, settings map[string]string,
 	authService := NewAuthService(
 		nil, // entClient
 		nil, // userRepo
-		nil, // redeemRepo
+		nil,
 		nil, // refreshTokenCache
 		cfg,
 		settingService,

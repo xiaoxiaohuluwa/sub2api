@@ -33,7 +33,6 @@ func newEmailOAuthAutoAuthService(
 	return NewAuthService(
 		nil, // entClient — nil, updateUserSignupSource early return
 		userRepo,
-		nil, // redeemRepo — invitationCode="" 时不触发
 		&refreshTokenCacheStub{},
 		cfg,
 		settingService,
@@ -63,7 +62,6 @@ func TestEmailOAuthAuto_SnapshotsPlatformQuotaDefaults(t *testing.T) {
 		"newoauth@example.com",
 		"newoauth",
 		"github",
-		"", // invitationCode
 	)
 	require.NoError(t, err)
 	require.NotNil(t, user)

@@ -190,7 +190,6 @@ type PaymentService struct {
 	entClient                *dbent.Client
 	registry                 *payment.Registry
 	loadBalancer             payment.LoadBalancer
-	redeemService            *RedeemService
 	subscriptionSvc          *SubscriptionService
 	configService            *PaymentConfigService
 	userRepo                 UserRepository
@@ -199,8 +198,8 @@ type PaymentService struct {
 	notificationEmailService *NotificationEmailService
 }
 
-func NewPaymentService(entClient *dbent.Client, registry *payment.Registry, loadBalancer payment.LoadBalancer, redeemService *RedeemService, subscriptionSvc *SubscriptionService, configService *PaymentConfigService, userRepo UserRepository, groupRepo GroupRepository) *PaymentService {
-	svc := &PaymentService{entClient: entClient, registry: registry, loadBalancer: newVisibleMethodLoadBalancer(loadBalancer, configService), redeemService: redeemService, subscriptionSvc: subscriptionSvc, configService: configService, userRepo: userRepo, groupRepo: groupRepo}
+func NewPaymentService(entClient *dbent.Client, registry *payment.Registry, loadBalancer payment.LoadBalancer, subscriptionSvc *SubscriptionService, configService *PaymentConfigService, userRepo UserRepository, groupRepo GroupRepository) *PaymentService {
+	svc := &PaymentService{entClient: entClient, registry: registry, loadBalancer: newVisibleMethodLoadBalancer(loadBalancer, configService), subscriptionSvc: subscriptionSvc, configService: configService, userRepo: userRepo, groupRepo: groupRepo}
 	svc.resumeService = psNewPaymentResumeService(configService)
 	return svc
 }

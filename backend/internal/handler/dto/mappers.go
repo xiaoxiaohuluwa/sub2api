@@ -564,55 +564,6 @@ func ProxyAccountSummaryFromService(a *service.ProxyAccountSummary) *ProxyAccoun
 	}
 }
 
-func RedeemCodeFromService(rc *service.RedeemCode) *RedeemCode {
-	if rc == nil {
-		return nil
-	}
-	out := redeemCodeFromServiceBase(rc)
-	return &out
-}
-
-// RedeemCodeFromServiceAdmin converts a service RedeemCode to DTO for admin users.
-// It includes notes - user-facing endpoints must not use this.
-func RedeemCodeFromServiceAdmin(rc *service.RedeemCode) *AdminRedeemCode {
-	if rc == nil {
-		return nil
-	}
-	return &AdminRedeemCode{
-		RedeemCode: redeemCodeFromServiceBase(rc),
-		Notes:      rc.Notes,
-	}
-}
-
-func redeemCodeFromServiceBase(rc *service.RedeemCode) RedeemCode {
-	out := RedeemCode{
-		ID:           rc.ID,
-		Code:         rc.Code,
-		Type:         rc.Type,
-		Value:        rc.Value,
-		Status:       rc.Status,
-		UsedBy:       rc.UsedBy,
-		UsedAt:       rc.UsedAt,
-		CreatedAt:    rc.CreatedAt,
-		ExpiresAt:    rc.ExpiresAt,
-		GroupID:      rc.GroupID,
-		ValidityDays: rc.ValidityDays,
-		User:         UserFromServiceShallow(rc.User),
-		Group:        GroupFromServiceShallow(rc.Group),
-	}
-	if rc.IsExpired() {
-		out.Status = service.StatusExpired
-	}
-
-	// For admin_balance/admin_concurrency types, include notes so users can see
-	// why they were charged or credited by admin
-	if (rc.Type == "admin_balance" || rc.Type == "admin_concurrency") && rc.Notes != "" {
-		out.Notes = &rc.Notes
-	}
-
-	return out
-}
-
 // AccountSummaryFromService returns a minimal AccountSummary for usage log display.
 // Only includes ID and Name - no sensitive fields like Credentials, Proxy, etc.
 func AccountSummaryFromService(a *service.Account) *AccountSummary {

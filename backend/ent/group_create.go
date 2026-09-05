@@ -15,7 +15,6 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/account"
 	"github.com/Wei-Shaw/sub2api/ent/apikey"
 	"github.com/Wei-Shaw/sub2api/ent/group"
-	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/usagelog"
 	"github.com/Wei-Shaw/sub2api/ent/user"
 	"github.com/Wei-Shaw/sub2api/ent/usersubscription"
@@ -907,21 +906,6 @@ func (_c *GroupCreate) AddAPIKeys(v ...*APIKey) *GroupCreate {
 	return _c.AddAPIKeyIDs(ids...)
 }
 
-// AddRedeemCodeIDs adds the "redeem_codes" edge to the RedeemCode entity by IDs.
-func (_c *GroupCreate) AddRedeemCodeIDs(ids ...int64) *GroupCreate {
-	_c.mutation.AddRedeemCodeIDs(ids...)
-	return _c
-}
-
-// AddRedeemCodes adds the "redeem_codes" edges to the RedeemCode entity.
-func (_c *GroupCreate) AddRedeemCodes(v ...*RedeemCode) *GroupCreate {
-	ids := make([]int64, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddRedeemCodeIDs(ids...)
-}
-
 // AddSubscriptionIDs adds the "subscriptions" edge to the UserSubscription entity by IDs.
 func (_c *GroupCreate) AddSubscriptionIDs(ids ...int64) *GroupCreate {
 	_c.mutation.AddSubscriptionIDs(ids...)
@@ -1693,22 +1677,6 @@ func (_c *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(apikey.FieldID, field.TypeInt64),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.RedeemCodesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   group.RedeemCodesTable,
-			Columns: []string{group.RedeemCodesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(redeemcode.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

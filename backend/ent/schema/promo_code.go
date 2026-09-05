@@ -17,7 +17,7 @@ import (
 // PromoCode holds the schema definition for the PromoCode entity.
 //
 // 注册优惠码：用户注册时使用，可获得赠送余额
-// 与 RedeemCode 不同，PromoCode 支持多次使用（有使用次数限制）
+// PromoCode 支持多次使用，并受使用次数限制。
 //
 // 删除策略：硬删除
 type PromoCode struct {
