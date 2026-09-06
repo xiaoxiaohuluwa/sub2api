@@ -98,7 +98,7 @@
     <div class="mb-3 flex items-center justify-between">
       <h3 class="text-sm font-semibold text-gray-900 dark:text-white">{{ t('dashboard.platformBreakdown') }}</h3>
       <span class="text-xs text-gray-500 dark:text-gray-400">
-         {{ t('dashboard.platformCount', { count: platformCards.length }) }}
+        {{ t('dashboard.platformCount', { count: platformCards.length }) }}
       </span>
     </div>
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -107,16 +107,16 @@
         :key="item.platform"
         :class="[
           'rounded-lg border p-3',
-           'border-gray-200 dark:border-dark-600'
+          'border-gray-200 dark:border-dark-600'
         ]"
       >
         <div class="flex items-center justify-between">
           <span class="text-sm font-semibold text-gray-900 dark:text-white">
-             {{ platformLabel(item.platform) }}
+            {{ platformLabel(item.platform) }}
           </span>
-         </div>
-         <div class="mt-2 space-y-1 text-xs">
-           <div class="flex items-center justify-between">
+        </div>
+        <div class="mt-2 space-y-1 text-xs">
+          <div class="flex items-center justify-between">
             <span class="text-gray-500 dark:text-gray-400">{{ t('dashboard.requests') }}</span>
             <span class="font-mono text-gray-700 dark:text-gray-300">
               {{ item.total_requests > 0 ? formatNumber(item.total_requests) : '-' }}
@@ -130,7 +130,7 @@
           </div>
         </div>
 
-       </div>
+      </div>
     </div>
   </div>
 </template>
