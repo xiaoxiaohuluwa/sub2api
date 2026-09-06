@@ -178,6 +178,7 @@
           :columns="visibleColumns"
           :server-side-sort="true"
           :show-account-billing="false"
+          :show-billing-details="false"
           :show-upstream-endpoint="false"
           default-sort-key="created_at"
           default-sort-order="desc"
@@ -251,7 +252,7 @@ import { COMMON_ERROR_STATUS_CODES } from '@/utils/errorBadges'
 const { t } = useI18n()
 const appStore = useAppStore()
 
-type DistributionMetric = 'tokens' | 'actual_cost'
+type DistributionMetric = 'tokens'
 type EndpointSource = 'inbound' | 'upstream' | 'path'
 
 const usageStats = ref<UsageStatsResponse | null>(null)
@@ -633,7 +634,6 @@ const exportToCSV = async () => {
       'Output Tokens',
       'Cache Read Tokens',
       'Cache Creation Tokens',
-      'Rate Multiplier',
       'First Token (ms)',
       'Duration (ms)',
     ]
@@ -649,7 +649,6 @@ const exportToCSV = async () => {
       log.output_tokens,
       log.cache_read_tokens,
       log.cache_creation_tokens,
-      log.rate_multiplier,
       log.first_token_ms ?? '',
       log.duration_ms ?? '',
     ].map(escapeCSVValue))

@@ -289,13 +289,15 @@ describe('user UsageView', () => {
     expect(showSuccess).toHaveBeenCalled()
     expect(csvContent.startsWith('\uFEFF')).toBe(true)
     expect(csvContent.slice(1)).toBe([
-      'Time,API Key Name,Model,Reasoning Effort,Inbound Endpoint,IP Address,Type,Billing Mode,Input Tokens,Output Tokens,Cache Read Tokens,Cache Creation Tokens,Rate Multiplier,Billed Cost,Original Cost,First Token (ms),Duration (ms)',
-      '2026-03-08T00:00:00Z,demo-key,gpt-5.4,"\'-",,203.0.113.10,Sync,Token,4057,101,278272,4,1,0.09288300,0.09288300,12,345',
+      'Time,API Key Name,Model,Reasoning Effort,Inbound Endpoint,IP Address,Type,Input Tokens,Output Tokens,Cache Read Tokens,Cache Creation Tokens,First Token (ms),Duration (ms)',
+      '2026-03-08T00:00:00Z,demo-key,gpt-5.4,"\'-",,203.0.113.10,Sync,4057,101,278272,4,12,345',
     ].join('\n'))
     expect(csvContent).toContain('IP Address')
     expect(csvContent).toContain('203.0.113.10')
-    expect(csvContent).toContain('Billed Cost')
-    expect(csvContent).toContain('Original Cost')
+    expect(csvContent).not.toContain('Billing Mode')
+    expect(csvContent).not.toContain('Rate Multiplier')
+    expect(csvContent).not.toContain('Billed Cost')
+    expect(csvContent).not.toContain('Original Cost')
     expect(csvContent).not.toContain('Upstream Endpoint')
     expect(csvContent).not.toContain('account_cost')
     expect(csvContent).not.toContain('account_rate_multiplier')
@@ -306,7 +308,7 @@ describe('user UsageView', () => {
     clickSpy.mockRestore()
   })
 
-  it('exports historical image rows with image billing mode derived from image_count', async () => {
+  it('exports historical image rows without billing metadata', async () => {
     query.mockResolvedValue({
       items: [
         {
@@ -349,8 +351,10 @@ describe('user UsageView', () => {
 
     await (wrapper.vm as any).exportToCSV()
 
-    expect(csvContent).toContain('Billing Mode')
-    expect(csvContent).toContain('Image')
+    expect(csvContent).not.toContain('Billing Mode')
+    expect(csvContent).not.toContain('Image')
+    expect(csvContent).not.toContain('Rate Multiplier')
+    expect(csvContent).not.toContain('Cost')
     expect(csvContent).not.toContain(',Token,0,0,0,0,')
 
     window.URL.createObjectURL = originalCreateObjectURL

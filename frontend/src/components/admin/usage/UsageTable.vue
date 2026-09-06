@@ -138,7 +138,7 @@
           </div>
         </template>
 
-        <template #cell-billing_mode="{ row }">
+        <template #cell-billing_mode="{ row }" v-if="showBillingDetails">
           <span class="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium" :class="getBillingModeBadgeClass(getDisplayBillingMode(row))">
             {{ getBillingModeLabel(getDisplayBillingMode(row), t) }}
           </span>
@@ -151,7 +151,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <span class="font-medium text-gray-900 dark:text-white">{{ row.image_count }}{{ t('usage.imageUnit') }}</span>
-            <span class="text-gray-400">({{ formatImageBillingSize(row, t) }})</span>
+            <span v-if="showBillingDetails" class="text-gray-400">({{ formatImageBillingSize(row, t) }})</span>
           </div>
           <!-- Token 请求 -->
           <div v-else class="flex items-center gap-1.5">
@@ -193,6 +193,7 @@
             </div>
             <!-- Token Detail Tooltip -->
             <div
+              v-if="showBillingDetails"
               class="group relative"
               @mouseenter="showTokenTooltip($event, row)"
               @mouseleave="hideTokenTooltip"
@@ -293,7 +294,7 @@
   <!-- Token Tooltip Portal -->
   <Teleport to="body">
     <div
-      v-if="tokenTooltipVisible"
+      v-if="showBillingDetails && tokenTooltipVisible"
       class="fixed z-[9999] pointer-events-none -translate-y-1/2"
       :style="{
         left: tokenTooltipPosition.x + 'px',
@@ -377,7 +378,7 @@
   <!-- Cost Tooltip Portal -->
   <Teleport to="body">
     <div
-      v-if="tooltipVisible"
+      v-if="showBillingDetails && tooltipVisible"
       class="fixed z-[9999] pointer-events-none -translate-y-1/2"
       :style="{
         left: tooltipPosition.x + 'px',
@@ -575,6 +576,7 @@ interface Props {
   defaultSortKey?: string
   defaultSortOrder?: 'asc' | 'desc'
   showAccountBilling?: boolean
+  showBillingDetails?: boolean
   showUpstreamEndpoint?: boolean
   /** 嵌入统一卡片内使用：去掉自身卡片外观 */
   flat?: boolean
@@ -586,6 +588,7 @@ const props = withDefaults(defineProps<Props>(), {
   defaultSortKey: '',
   defaultSortOrder: 'asc',
   showAccountBilling: true,
+  showBillingDetails: true,
   showUpstreamEndpoint: true,
   flat: false
 })
@@ -598,6 +601,7 @@ const { t } = useI18n()
 const appStore = useAppStore()
 const copiedRequestId = ref<string | null>(null)
 const showAccountBilling = props.showAccountBilling
+const showBillingDetails = props.showBillingDetails
 const showUpstreamEndpoint = props.showUpstreamEndpoint
 const ipGeoBatchLoading = ref(false)
 
