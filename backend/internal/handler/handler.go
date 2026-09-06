@@ -11,7 +11,6 @@ type AdminHandlers struct {
 	User                  *admin.UserHandler
 	Group                 *admin.GroupHandler
 	Account               *admin.AccountHandler
-	Announcement          *admin.AnnouncementHandler
 	DataManagement        *admin.DataManagementHandler
 	Backup                *admin.BackupHandler
 	OAuth                 *admin.OAuthHandler
@@ -44,7 +43,6 @@ type Handlers struct {
 	User             *UserHandler
 	APIKey           *APIKeyHandler
 	Usage            *UsageHandler
-	Announcement     *AnnouncementHandler
 	Memo             *MemoHandler
 	Admin            *AdminHandlers
 	Gateway          *GatewayHandler

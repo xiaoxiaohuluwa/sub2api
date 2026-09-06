@@ -23,7 +23,7 @@ describe('Admin UI request marker', () => {
     expect(shouldMarkAdminUIRequest(requestURL, '/login')).toBe(true)
   })
 
-  it.each(['/keys', '/groups/available', '/auth/me', '/announcements'])(
+  it.each(['/keys', '/groups/available', '/auth/me'])(
     'marks shared request %s while an Admin page is active',
     (requestURL) => {
       expect(shouldMarkAdminUIRequest(requestURL, '/admin/dashboard')).toBe(true)
@@ -64,8 +64,6 @@ describe('User UI request marker', () => {
     '/usage',
     '/usage/stats',
     '/usage/dashboard/snapshot-v2',
-    '/announcements',
-    '/announcements/3/read',
     '/channel-monitors',
     '/channel-monitors/9/status',
     '/payment/config',
