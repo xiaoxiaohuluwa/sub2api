@@ -19,6 +19,7 @@
           {{ t('admin.dashboard.metricTokens') }}
         </button>
         <button
+          v-if="showCost"
           type="button"
           class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
           :class="metric === 'actual_cost'
@@ -44,9 +45,9 @@
               <th class="pb-2 text-left">{{ t('admin.dashboard.group') }}</th>
               <th class="pb-2 text-right">{{ t('admin.dashboard.requests') }}</th>
               <th class="pb-2 text-right">{{ t('admin.dashboard.tokens') }}</th>
-              <th class="pb-2 text-right">{{ t('admin.dashboard.actual') }}</th>
+              <th v-if="showCost" class="pb-2 text-right">{{ t('admin.dashboard.actual') }}</th>
               <th v-if="showAccountCost" class="pb-2 text-right">{{ t('admin.dashboard.accountCost') }}</th>
-              <th class="pb-2 text-right">{{ t('admin.dashboard.standard') }}</th>
+              <th v-if="showCost" class="pb-2 text-right">{{ t('admin.dashboard.standard') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -73,13 +74,13 @@
                 <td class="py-1.5 text-right text-gray-600 dark:text-gray-400">
                   {{ formatTokens(group.total_tokens) }}
                 </td>
-                <td class="py-1.5 text-right text-green-600 dark:text-green-400">
+                <td v-if="showCost" class="py-1.5 text-right text-green-600 dark:text-green-400">
                   ${{ formatCost(group.actual_cost) }}
                 </td>
                 <td v-if="showAccountCost" class="py-1.5 text-right text-orange-500 dark:text-orange-400">
                   ${{ formatCost(group.account_cost) }}
                 </td>
-                <td class="py-1.5 text-right text-gray-400 dark:text-gray-500">
+                <td v-if="showCost" class="py-1.5 text-right text-gray-400 dark:text-gray-500">
                   ${{ formatCost(group.cost) }}
                 </td>
               </tr>
@@ -130,6 +131,7 @@ const props = withDefaults(defineProps<{
   showMetricToggle?: boolean
   enableBreakdown?: boolean
   showAccountCost?: boolean
+  showCost?: boolean
   startDate?: string
   endDate?: string
   filters?: Record<string, any>
@@ -139,6 +141,7 @@ const props = withDefaults(defineProps<{
   showMetricToggle: false,
   enableBreakdown: true,
   showAccountCost: true,
+  showCost: true,
 })
 
 const emit = defineEmits<{
@@ -149,7 +152,8 @@ const expandedKey = ref<string | null>(null)
 const breakdownItems = ref<UserBreakdownItem[]>([])
 const breakdownLoading = ref(false)
 const showAccountCost = computed(() => props.showAccountCost)
-const distributionColspan = computed(() => showAccountCost.value ? 6 : 5)
+const showCost = computed(() => props.showCost)
+const distributionColspan = computed(() => 3 + (showCost.value ? 1 : 0) + (showAccountCost.value ? 1 : 0) + (showCost.value ? 1 : 0))
 
 const toggleBreakdown = async (type: string, id: number | string) => {
   const key = `${type}-${id}`
@@ -191,7 +195,7 @@ const chartColors = [
 const displayGroupStats = computed(() => {
   if (!props.groupStats?.length) return []
 
-  const metricKey = props.metric === 'actual_cost' ? 'actual_cost' : 'total_tokens'
+  const metricKey = (showCost.value && props.metric === 'actual_cost') ? 'actual_cost' : 'total_tokens'
   return [...props.groupStats].sort((a, b) => toFiniteNumber(b[metricKey]) - toFiniteNumber(a[metricKey]))
 })
 
@@ -202,7 +206,7 @@ const chartData = computed(() => {
     labels: displayGroupStats.value.map((g) => g.group_name || String(g.group_id)),
     datasets: [
       {
-        data: displayGroupStats.value.map((g) => toFiniteNumber(props.metric === 'actual_cost' ? g.actual_cost : g.total_tokens)),
+        data: displayGroupStats.value.map((g) => toFiniteNumber((showCost.value && props.metric === 'actual_cost') ? g.actual_cost : g.total_tokens)),
         backgroundColor: chartColors.slice(0, displayGroupStats.value.length),
         borderWidth: 0
       }
@@ -223,7 +227,7 @@ const doughnutOptions = computed(() => ({
           const value = context.raw as number
           const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0)
           const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
-          const formattedValue = props.metric === 'actual_cost'
+          const formattedValue = (showCost.value && props.metric === 'actual_cost')
             ? `$${formatCost(value)}`
             : formatTokens(value)
           return `${context.label}: ${formattedValue} (${percentage}%)`

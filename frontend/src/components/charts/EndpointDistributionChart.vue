@@ -56,6 +56,7 @@
             {{ t('admin.dashboard.metricTokens') }}
           </button>
           <button
+            v-if="showCost"
             type="button"
             class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
             :class="metric === 'actual_cost'
@@ -82,8 +83,8 @@
               <th class="pb-2 text-left">{{ t('usage.endpoint') }}</th>
               <th class="pb-2 text-right">{{ t('admin.dashboard.requests') }}</th>
               <th class="pb-2 text-right">{{ t('admin.dashboard.tokens') }}</th>
-              <th class="pb-2 text-right">{{ t('admin.dashboard.actual') }}</th>
-              <th class="pb-2 text-right">{{ t('admin.dashboard.standard') }}</th>
+              <th v-if="showCost" class="pb-2 text-right">{{ t('admin.dashboard.actual') }}</th>
+              <th v-if="showCost" class="pb-2 text-right">{{ t('admin.dashboard.standard') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -106,15 +107,15 @@
                 <td class="py-1.5 text-right text-gray-600 dark:text-gray-400">
                   {{ formatTokens(item.total_tokens) }}
                 </td>
-                <td class="py-1.5 text-right text-green-600 dark:text-green-400">
+                <td v-if="showCost" class="py-1.5 text-right text-green-600 dark:text-green-400">
                   ${{ formatCost(item.actual_cost) }}
                 </td>
-                <td class="py-1.5 text-right text-gray-400 dark:text-gray-500">
+                <td v-if="showCost" class="py-1.5 text-right text-gray-400 dark:text-gray-500">
                   ${{ formatCost(item.cost) }}
                 </td>
               </tr>
               <tr v-if="expandedKey === item.endpoint">
-                <td colspan="5" class="p-0">
+                <td :colspan="endpointDistributionColspan" class="p-0">
                   <UserBreakdownSubTable
                     :items="breakdownItems"
                     :loading="breakdownLoading"
@@ -161,6 +162,7 @@ const props = withDefaults(
     showMetricToggle?: boolean
     showSourceToggle?: boolean
     enableBreakdown?: boolean
+    showCost?: boolean
     startDate?: string
     endDate?: string
     filters?: Record<string, any>
@@ -174,7 +176,8 @@ const props = withDefaults(
     source: 'inbound',
     showMetricToggle: false,
     showSourceToggle: false,
-    enableBreakdown: true
+    enableBreakdown: true,
+    showCost: true,
   }
 )
 
@@ -186,6 +189,8 @@ const emit = defineEmits<{
 const expandedKey = ref<string | null>(null)
 const breakdownItems = ref<UserBreakdownItem[]>([])
 const breakdownLoading = ref(false)
+const showCost = computed(() => props.showCost)
+const endpointDistributionColspan = computed(() => 3 + (showCost.value ? 2 : 0))
 
 const toggleBreakdown = async (endpoint: string) => {
   if (expandedKey.value === endpoint) {
@@ -234,7 +239,7 @@ const displayEndpointStats = computed(() => {
       : props.endpointStats
   if (!sourceStats?.length) return []
 
-  const metricKey = props.metric === 'actual_cost' ? 'actual_cost' : 'total_tokens'
+  const metricKey = (showCost.value && props.metric === 'actual_cost') ? 'actual_cost' : 'total_tokens'
   return [...sourceStats].sort((a, b) => b[metricKey] - a[metricKey])
 })
 
@@ -246,7 +251,7 @@ const chartData = computed(() => {
     datasets: [
       {
         data: displayEndpointStats.value.map((item) =>
-          props.metric === 'actual_cost' ? item.actual_cost : item.total_tokens
+          (showCost.value && props.metric === 'actual_cost') ? item.actual_cost : item.total_tokens
         ),
         backgroundColor: chartColors.slice(0, displayEndpointStats.value.length),
         borderWidth: 0
@@ -268,7 +273,7 @@ const doughnutOptions = computed(() => ({
           const value = context.raw as number
           const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0)
           const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
-          const formattedValue = props.metric === 'actual_cost'
+          const formattedValue = (showCost.value && props.metric === 'actual_cost')
             ? `$${formatCost(value)}`
             : formatTokens(value)
           return `${context.label}: ${formattedValue} (${percentage}%)`

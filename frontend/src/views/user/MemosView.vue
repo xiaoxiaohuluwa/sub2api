@@ -1,68 +1,116 @@
 <template>
   <AppLayout>
-    <div class="mx-auto max-w-4xl px-4 py-6">
-      <!-- Header -->
-      <div class="mb-6 flex items-center justify-between">
-        <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ t('memos.title') }}</h1>
-        <button @click="openEditor()" class="btn btn-primary">
-          <Icon name="plus" size="md" class="mr-1" />
-          {{ t('memos.create') }}
-        </button>
-      </div>
+    <TablePageLayout>
+      <template #filters>
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex-1 sm:max-w-64">
+            <input
+              v-model="searchQuery"
+              type="text"
+              :placeholder="t('memos.searchPlaceholder')"
+              class="input"
+              @input="handleSearch"
+            />
+          </div>
+          <div class="flex flex-1 flex-wrap items-center justify-end gap-2">
+            <button
+              @click="loadMemos"
+              :disabled="loading"
+              class="btn btn-secondary"
+              :title="t('common.refresh')"
+            >
+              <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
+            </button>
+            <button @click="openEditor()" class="btn btn-primary">
+              <Icon name="plus" size="md" class="mr-1" />
+              {{ t('memos.create') }}
+            </button>
+          </div>
+        </div>
+      </template>
 
-      <!-- Loading -->
-      <div v-if="loading" class="flex justify-center py-12">
-        <Icon name="refresh" size="lg" class="animate-spin text-gray-400" />
-      </div>
-
-      <!-- Empty -->
-      <div v-else-if="memos.length === 0" class="rounded-lg border border-dashed border-gray-300 py-16 text-center dark:border-dark-600">
-        <p class="text-gray-400">{{ t('memos.empty') }}</p>
-        <button @click="openEditor()" class="btn btn-primary mt-4">
-          {{ t('memos.create') }}
-        </button>
-      </div>
-
-      <!-- Memo List -->
-      <div v-else class="space-y-3">
-        <div
-          v-for="memo in memos"
-          :key="memo.id"
-          class="group rounded-lg border border-gray-200 bg-white p-4 transition hover:shadow-md dark:border-dark-600 dark:bg-dark-800"
+      <template #table>
+        <DataTable
+          :columns="columns"
+          :data="filteredMemos"
+          :loading="loading"
+          default-sort-key="updated_at"
+          default-sort-order="desc"
         >
-          <div class="flex items-start justify-between gap-3">
-            <div class="min-w-0 flex-1" @click="openEditor(memo)" class="cursor-pointer">
+          <template #cell-title="{ value, row }">
+            <div class="min-w-0">
               <div class="flex items-center gap-2">
-                <svg v-if="memo.pinned" class="h-4 w-4 shrink-0 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg v-if="row.pinned" class="h-4 w-4 shrink-0 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.828 1.172a4 4 0 00-5.656 5.656l4 4a1 1 0 001.414 0l4-4a1 1 0 000-1.414l-1.586-1.586 3.293-3.293a1 1 0 10-1.414-1.414L10.414 6.586 9 5.172l.828-.828a1 1 0 000-1.414z"/>
                 </svg>
-                <h3 class="truncate font-medium text-gray-900 dark:text-white">{{ memo.title }}</h3>
+                <span class="truncate font-medium text-gray-900 dark:text-white">{{ value }}</span>
               </div>
-              <p class="mt-1 line-clamp-2 text-sm text-gray-500 dark:text-dark-400">{{ stripMarkdown(memo.content) }}</p>
-              <p class="mt-1 text-xs text-gray-400 dark:text-dark-500">{{ formatRelativeTime(memo.updated_at) }}</p>
+              <div class="mt-1 flex items-center gap-2 text-xs text-gray-500 dark:text-dark-400">
+                <span>#{{ row.id }}</span>
+                <span class="text-gray-300 dark:text-dark-700">·</span>
+                <span>{{ formatDateTime(row.created_at) }}</span>
+              </div>
             </div>
-            <div class="flex shrink-0 items-center gap-1 opacity-0 transition group-hover:opacity-100">
+          </template>
+
+          <template #cell-content="{ value }">
+            <p class="line-clamp-2 max-w-md text-sm text-gray-500 dark:text-dark-400">{{ stripMarkdown(value) }}</p>
+          </template>
+
+          <template #cell-pinned="{ value }">
+            <span
+              :class="[
+                'badge',
+                value ? 'badge-warning' : 'badge-gray'
+              ]"
+            >
+              {{ value ? t('memos.pinned') : t('memos.unpinned') }}
+            </span>
+          </template>
+
+          <template #cell-updated_at="{ value }">
+            <span class="text-sm text-gray-500 dark:text-dark-400">{{ formatRelativeTime(value) }}</span>
+          </template>
+
+          <template #cell-actions="{ row }">
+            <div class="flex items-center space-x-1">
               <button
-                @click="togglePin(memo)"
-                :title="memo.pinned ? t('memos.unpin') : t('memos.pin')"
-                class="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-dark-700"
+                @click="openEditor(row)"
+                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-dark-600 dark:hover:text-gray-300"
+                :title="t('common.edit')"
               >
-                <svg class="h-4 w-4" :class="memo.pinned ? 'text-amber-500' : ''" fill="currentColor" viewBox="0 0 20 20">
+                <Icon name="edit" size="sm" />
+              </button>
+              <button
+                @click="togglePin(row)"
+                :title="row.pinned ? t('memos.unpin') : t('memos.pin')"
+                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-900/20 dark:hover:text-amber-400"
+              >
+                <svg class="h-4 w-4" :class="row.pinned ? 'text-amber-500' : ''" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.828 1.172a4 4 0 00-5.656 5.656l4 4a1 1 0 001.414 0l4-4a1 1 0 000-1.414l-1.586-1.586 3.293-3.293a1 1 0 10-1.414-1.414L10.414 6.586 9 5.172l.828-.828a1 1 0 000-1.414z"/>
                 </svg>
               </button>
               <button
-                @click="confirmDelete(memo)"
+                @click="confirmDelete(row)"
+                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                 :title="t('common.delete')"
-                class="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
               >
                 <Icon name="trash" size="sm" />
               </button>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
+          </template>
+
+          <template #empty>
+            <EmptyState
+              :title="t('empty.noData')"
+              :description="t('memos.empty')"
+              :action-text="t('memos.create')"
+              @action="openEditor()"
+            />
+          </template>
+        </DataTable>
+      </template>
+    </TablePageLayout>
 
     <!-- Editor Modal -->
     <Teleport to="body">
@@ -124,11 +172,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import memosAPI from '@/api/memos'
 import type { Memo } from '@/api/memos'
+import type { Column } from '@/components/common/types'
+import { formatDateTime } from '@/utils/format'
+
+import AppLayout from '@/components/layout/AppLayout.vue'
+import TablePageLayout from '@/components/layout/TablePageLayout.vue'
+import DataTable from '@/components/common/DataTable.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
+import Icon from '@/components/icons/Icon.vue'
 
 const { t, locale } = useI18n()
 const appStore = useAppStore()
@@ -139,6 +195,7 @@ const memos = ref<Memo[]>([])
 const editorOpen = ref(false)
 const editingMemo = ref<Memo | null>(null)
 const deleteTarget = ref<Memo | null>(null)
+const searchQuery = ref('')
 
 const form = ref({
   title: '',
@@ -146,15 +203,39 @@ const form = ref({
   pinned: false
 })
 
+const columns = computed<Column[]>(() => [
+  { key: 'title', label: t('memos.columns.title'), sortable: true },
+  { key: 'content', label: t('memos.columns.content') },
+  { key: 'pinned', label: t('memos.columns.pinned'), sortable: true },
+  { key: 'updated_at', label: t('memos.columns.updatedAt'), sortable: true },
+  { key: 'actions', label: t('common.actions') }
+])
+
+const filteredMemos = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return memos.value
+  return memos.value.filter(
+    (m) => m.title.toLowerCase().includes(q) || m.content.toLowerCase().includes(q)
+  )
+})
+
 async function loadMemos() {
   loading.value = true
   try {
-    memos.value = await memosAPI.list()
+    memos.value = await memosAPI.list(100, 0)
   } catch {
     appStore.showError(t('memos.loadFailed'))
   } finally {
     loading.value = false
   }
+}
+
+let searchDebounceTimer: number | null = null
+function handleSearch() {
+  if (searchDebounceTimer) window.clearTimeout(searchDebounceTimer)
+  searchDebounceTimer = window.setTimeout(() => {
+    // client-side filter via computed, no action needed
+  }, 300)
 }
 
 function openEditor(memo?: Memo) {

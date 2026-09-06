@@ -58,7 +58,7 @@
         </p>
       </div>
     </div>
-    <div class="card p-4 flex items-center gap-3">
+    <div v-if="showCost" class="card p-4 flex items-center gap-3">
       <div class="rounded-lg bg-green-100 p-2 dark:bg-green-900/30 text-green-600">
         <Icon name="dollar" size="md" />
       </div>
@@ -99,9 +99,11 @@ const props = withDefaults(defineProps<{
   stats: (AdminUsageStatsResponse | UsageStatsResponse) | null
   showAccountCost?: boolean
   strikeStandardCost?: boolean
+  showCost?: boolean
 }>(), {
   showAccountCost: true,
   strikeStandardCost: false,
+  showCost: true,
 })
 
 const { t } = useI18n()
@@ -112,6 +114,7 @@ const totalAccountCost = computed(() => {
 })
 const showAccountCost = computed(() => props.showAccountCost)
 const strikeStandardCost = computed(() => props.strikeStandardCost)
+const showCost = computed(() => props.showCost)
 
 const formatDuration = (ms: number) =>
   ms < 1000 ? `${ms.toFixed(0)}ms` : `${(ms / 1000).toFixed(2)}s`
